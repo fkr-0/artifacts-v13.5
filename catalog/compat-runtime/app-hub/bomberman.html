@@ -1,0 +1,453 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Gridblast Bomberman</title>
+  <script src="../lib/storage/local-storage-manager.js"></script>
+  <script src="../lib/secret-storage/secret-storage.js"></script>
+  <script src="../lib/ui/spaceship-ui.js"></script>
+  <link rel="stylesheet" href="../lib/artifact-motion/artifact-motion.css">
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: radial-gradient(circle at top, #1b1430 0, #070710 55%, #020205 100%);
+      color: #e8fbff;
+      font-family: 'Share Tech Mono', 'Courier New', monospace;
+      padding: 18px;
+    }
+    .game-shell {
+      min-height: calc(100vh - 36px);
+      display: grid;
+      grid-template-columns: minmax(320px, 1fr) 320px;
+      gap: 16px;
+    }
+    canvas {
+      width: min(90vmin, calc(100vw - 380px));
+      height: min(90vmin, calc(100vw - 380px));
+      max-width: 780px;
+      max-height: 780px;
+      align-self: center;
+      justify-self: center;
+      background: #071419;
+      border: 2px solid rgba(0,255,255,.35);
+      box-shadow: 0 0 30px rgba(0,255,255,.18);
+      image-rendering: pixelated;
+    }
+    aside {
+      background: rgba(0,0,0,.55);
+      border: 1px solid rgba(0,255,255,.25);
+      border-radius: 14px;
+      padding: 14px;
+      box-shadow: 0 0 22px rgba(0,255,255,.12);
+      overflow: auto;
+    }
+    h1 { margin: 0 0 8px; color: #0ff; font-size: 24px; }
+    .muted { color: rgba(232,251,255,.68); font-size: 12px; line-height: 1.4; }
+    button, select {
+      width: 100%;
+      margin: 8px 0;
+      padding: 10px;
+      border-radius: 8px;
+      border: 1px solid rgba(0,255,255,.45);
+      background: rgba(0,255,255,.08);
+      color: #e8fbff;
+      font-family: inherit;
+    }
+    button { cursor: pointer; }
+    button:hover { background: rgba(0,255,255,.16); }
+    .players { display: grid; gap: 8px; margin-top: 12px; }
+    .player-card {
+      border: 1px solid rgba(255,255,255,.12);
+      border-radius: 10px;
+      padding: 8px;
+      background: rgba(255,255,255,.04);
+    }
+    .alive { color: #7cff7c; }
+    .dead { color: #ff6b6b; }
+    .controls {
+      display: grid;
+      gap: 6px;
+      margin-top: 12px;
+      font-size: 11px;
+      color: rgba(232,251,255,.75);
+    }
+    .winner {
+      color: #ff0;
+      font-size: 18px;
+      margin: 10px 0;
+      text-shadow: 0 0 10px rgba(255,255,0,.35);
+    }
+    @media (max-width: 900px) {
+      .game-shell { grid-template-columns: 1fr; }
+      canvas { width: min(94vmin, calc(100vw - 36px)); height: min(94vmin, calc(100vw - 36px)); }
+    }
+  </style>
+</head>
+<body>
+  <main class="game-shell">
+  <canvas id="board" width="780" height="780"></canvas>
+  <aside>
+    <h1>💣 Gridblast</h1>
+    <div class="muted">Classic 2–4 player Bomberman: square grid, breakable blocks, timed bombs, cross explosions, chain reactions, two upgrade axes, and v10 one-session multiplayer viewing/joining.</div>
+    <div id="netStatus" class="muted" style="margin-top:8px">Network: local</div>
+    <label class="muted">Players
+      <select id="playerCount">
+        <option value="2">2 players</option>
+        <option value="3">3 players</option>
+        <option value="4" selected>4 players</option>
+      </select>
+    </label>
+    <button id="newGameBtn">New Game</button>
+    <button id="pauseBtn">Pause</button>
+    <div id="winner" class="winner"></div>
+    <div id="playerStats" class="players"></div>
+    <div class="controls">
+      <strong>Controls</strong>
+      <span>P1: WASD + Space</span>
+      <span>P2: Arrows + Enter</span>
+      <span>P3: IJKL + U</span>
+      <span>P4: Numpad 8/4/5/6 + 0</span>
+      <span>Upgrades: 🔥 extends bomb cross, ＋ allows more active bombs.</span>
+    </div>
+  </aside>
+  </main>
+
+  <script type="module">
+    import { PeernetLobby } from '../lib/peernet/peernet-lib.js';
+    import {
+      BOMB_FUSE_TICKS,
+      EXPLOSION_TICKS,
+      createGame,
+      dropBomb,
+      movePlayer,
+      tickGame,
+    } from './lib/bomberman-core.mjs';
+
+    const params = new URLSearchParams(window.location.search);
+    const multiplayerEnabled = params.get('multiplayer') === 'true';
+    const targetPeerId = params.get('targetPeerId') || '';
+    const username = params.get('username') || localStorage.getItem('v10-username') || `Bomber-${Math.floor(Math.random() * 9000 + 1000)}`;
+    const sessionId = params.get('session') || 'v10-main';
+    const storagePrefix = `v10-bomberman:${sessionId}`;
+    const storageFacade = window.LocalStorageManager ? new window.LocalStorageManager({ namespace: 'v10-bomberman' }) : null;
+    const secretFacade = window.SecretStorage ? new window.SecretStorage({ namespace: 'v10-bomberman-secret' }) : null;
+    const uiFacade = window.SpaceshipUI ? { loaded: true } : null;
+    void storageFacade;
+    void secretFacade;
+    void uiFacade;
+
+    const canvas = document.getElementById('board');
+    const ctx = canvas.getContext('2d');
+    const playerStats = document.getElementById('playerStats');
+    const winnerEl = document.getElementById('winner');
+    const playerCount = document.getElementById('playerCount');
+    const playerColors = ['#37d7ff', '#ff5f7a', '#ffe45f', '#67ff75'];
+    const keys = new Set();
+    let paused = false;
+    let lastStep = 0;
+    let game = createGame({ players: Number(playerCount.value) });
+    let lobby = null;
+    let myPeerId = null;
+    let hostPeerId = null;
+    let lastBroadcastAt = 0;
+    let applyingRemoteState = false;
+    let pausedByVisibility = false;
+    let animationFrameId = 0;
+    let destroyed = false;
+    const netStatus = document.getElementById('netStatus');
+
+    const bindings = [
+      { up: 'KeyW', down: 'KeyS', left: 'KeyA', right: 'KeyD', bomb: 'Space' },
+      { up: 'ArrowUp', down: 'ArrowDown', left: 'ArrowLeft', right: 'ArrowRight', bomb: 'Enter' },
+      { up: 'KeyI', down: 'KeyK', left: 'KeyJ', right: 'KeyL', bomb: 'KeyU' },
+      { up: 'Numpad8', down: 'Numpad5', left: 'Numpad4', right: 'Numpad6', bomb: 'Numpad0' },
+    ];
+
+    document.body.dataset.mode = params.get('embedded') === 'true' ? 'embedded' : 'standalone';
+    document.getElementById('newGameBtn').onclick = () => reset();
+    document.getElementById('pauseBtn').onclick = () => togglePause();
+    playerCount.onchange = () => reset();
+
+    document.addEventListener('keydown', (event) => {
+      keys.add(event.code);
+      if (bindings.some((binding) => Object.values(binding).includes(event.code))) {
+        event.preventDefault();
+      }
+      const playerId = bindings.findIndex((binding) => binding.bomb === event.code);
+      if (playerId >= 0 && !event.repeat) {
+        game = dropBomb(game, playerId);
+        saveSnapshot();
+        broadcastBombermanState('bomb');
+      }
+    });
+    document.addEventListener('keyup', (event) => keys.delete(event.code));
+
+    function reset() {
+      paused = false;
+      pausedByVisibility = false;
+      document.getElementById('pauseBtn').textContent = 'Pause';
+      game = createGame({ players: Number(playerCount.value) });
+      saveSnapshot();
+      broadcastBombermanState('reset');
+      render();
+    }
+
+    function startLoop() {
+      if (destroyed || animationFrameId) return;
+      animationFrameId = requestAnimationFrame(loop);
+    }
+
+    function stopLoop() {
+      if (animationFrameId) cancelAnimationFrame(animationFrameId);
+      animationFrameId = 0;
+    }
+
+    function loop(now) {
+      animationFrameId = 0;
+      if (destroyed) return;
+      if (!paused && now - lastStep > 100) {
+        lastStep = now;
+        stepInput();
+        game = tickGame(game);
+        saveSnapshot();
+        broadcastBombermanState('tick');
+      }
+      render();
+      if (!destroyed && document.visibilityState !== 'hidden') startLoop();
+    }
+
+    function stepInput() {
+      bindings.forEach((binding, playerId) => {
+        let dx = 0;
+        let dy = 0;
+        if (keys.has(binding.left)) dx = -1;
+        else if (keys.has(binding.right)) dx = 1;
+        else if (keys.has(binding.up)) dy = -1;
+        else if (keys.has(binding.down)) dy = 1;
+        if (dx || dy) {
+          game = movePlayer(game, playerId, { dx, dy });
+          broadcastBombermanState('move');
+        }
+      });
+    }
+
+    function render() {
+      const size = canvas.width;
+      const cell = size / game.width;
+      ctx.clearRect(0, 0, size, size);
+
+      ctx.fillStyle = '#0a2621';
+      ctx.fillRect(0, 0, size, size);
+
+      for (let y = 0; y < game.height; y += 1) {
+        for (let x = 0; x < game.width; x += 1) {
+          ctx.fillStyle = (x + y) % 2 ? 'rgba(255,255,255,.025)' : 'rgba(0,0,0,.08)';
+          ctx.fillRect(x * cell, y * cell, cell, cell);
+        }
+      }
+
+      game.blocks.forEach((block) => {
+        if (block.type === 'solid') {
+          ctx.fillStyle = '#183a52';
+          ctx.fillRect(block.x * cell + 2, block.y * cell + 2, cell - 4, cell - 4);
+          ctx.fillStyle = 'rgba(255,255,255,.12)';
+          ctx.fillRect(block.x * cell + 6, block.y * cell + 6, cell - 12, 5);
+        } else {
+          ctx.fillStyle = '#764421';
+          ctx.fillRect(block.x * cell + 5, block.y * cell + 5, cell - 10, cell - 10);
+          ctx.strokeStyle = 'rgba(255,214,128,.28)';
+          ctx.strokeRect(block.x * cell + 8, block.y * cell + 8, cell - 16, cell - 16);
+        }
+      });
+
+      game.upgrades.forEach((upgrade) => {
+        ctx.fillStyle = upgrade.type === 'bomb-limit' ? '#0ff' : '#ff7a00';
+        ctx.shadowColor = ctx.fillStyle;
+        ctx.shadowBlur = 14;
+        ctx.beginPath();
+        ctx.arc((upgrade.x + 0.5) * cell, (upgrade.y + 0.5) * cell, cell * 0.28, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.shadowBlur = 0;
+        ctx.fillStyle = '#001';
+        ctx.font = `${cell * 0.34}px monospace`;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(upgrade.type === 'bomb-limit' ? '+' : '🔥', (upgrade.x + 0.5) * cell, (upgrade.y + 0.5) * cell);
+      });
+
+      game.bombs.forEach((bomb) => {
+        const pulse = 0.8 + 0.2 * Math.sin((1 - bomb.fuse / BOMB_FUSE_TICKS) * Math.PI * 10);
+        ctx.fillStyle = '#111';
+        ctx.shadowColor = '#f33';
+        ctx.shadowBlur = 18 * pulse;
+        ctx.beginPath();
+        ctx.arc((bomb.x + 0.5) * cell, (bomb.y + 0.5) * cell, cell * 0.32 * pulse, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.shadowBlur = 0;
+      });
+
+      game.explosions.forEach((explosion) => {
+        const alpha = Math.max(0.15, (explosion.ttl ?? EXPLOSION_TICKS) / EXPLOSION_TICKS);
+        ctx.fillStyle = `rgba(255,210,40,${alpha})`;
+        ctx.fillRect(explosion.x * cell + 4, explosion.y * cell + 4, cell - 8, cell - 8);
+        ctx.fillStyle = `rgba(255,80,0,${alpha * 0.55})`;
+        ctx.fillRect(explosion.x * cell + cell * 0.25, explosion.y * cell + cell * 0.25, cell * 0.5, cell * 0.5);
+      });
+
+      game.players.forEach((player) => {
+        ctx.globalAlpha = player.alive ? 1 : 0.32;
+        ctx.fillStyle = playerColors[player.id];
+        ctx.shadowColor = playerColors[player.id];
+        ctx.shadowBlur = player.alive ? 10 : 0;
+        roundedRect((player.x + 0.22) * cell, (player.y + 0.18) * cell, cell * 0.56, cell * 0.64, 8);
+        ctx.fill();
+        ctx.shadowBlur = 0;
+        ctx.fillStyle = '#001';
+        ctx.font = `${cell * 0.32}px monospace`;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(String(player.id + 1), (player.x + 0.5) * cell, (player.y + 0.52) * cell);
+        ctx.globalAlpha = 1;
+      });
+
+      renderStats();
+    }
+
+    function roundedRect(x, y, w, h, r) {
+      ctx.beginPath();
+      ctx.moveTo(x + r, y);
+      ctx.arcTo(x + w, y, x + w, y + h, r);
+      ctx.arcTo(x + w, y + h, x, y + h, r);
+      ctx.arcTo(x, y + h, x, y, r);
+      ctx.arcTo(x, y, x + w, y, r);
+      ctx.closePath();
+    }
+
+    function renderStats() {
+      if (game.winnerId !== null) {
+        winnerEl.textContent = `Player ${game.winnerId + 1} wins!`;
+      } else if (game.players.filter((player) => player.alive).length === 0) {
+        winnerEl.textContent = 'Draw!';
+      } else {
+        winnerEl.textContent = '';
+      }
+
+      const networkLine = multiplayerEnabled
+        ? `Network: ${myPeerId ? 'connected' : 'connecting'}${hostPeerId ? ` · viewing ${hostPeerId.slice(0, 8)}` : ' · hosting/joinable'} · ${username}`
+        : 'Network: local';
+      netStatus.textContent = networkLine;
+
+      playerStats.innerHTML = game.players.map((player) => `
+        <div class="player-card">
+          <strong style="color:${playerColors[player.id]}">Player ${player.id + 1}</strong>
+          <span class="${player.alive ? 'alive' : 'dead'}">${player.alive ? 'alive' : 'out'}</span><br>
+          Bombs: ${player.bombLimit} · Range: ${player.blastRange} · Score: ${player.score}
+        </div>
+      `).join('');
+    }
+
+    function togglePause(nextPaused) {
+      paused = typeof nextPaused === 'boolean' ? nextPaused : !paused;
+      document.getElementById('pauseBtn').textContent = paused ? 'Resume' : 'Pause';
+      if (!paused && !destroyed) startLoop();
+    }
+
+    function handleVisibilityChange() {
+      if (document.visibilityState === 'hidden') {
+        if (!paused) {
+          pausedByVisibility = true;
+          togglePause(true);
+        }
+        stopLoop();
+        return;
+      }
+      if (pausedByVisibility) {
+        pausedByVisibility = false;
+        togglePause(false);
+      } else if (!destroyed) {
+        startLoop();
+      }
+    }
+
+    function destroyGame() {
+      if (destroyed) return;
+      destroyed = true;
+      stopLoop();
+      lobby?.destroy?.();
+      lobby = null;
+    }
+
+
+
+    function saveSnapshot() {
+      try {
+        localStorage.setItem(`${storagePrefix}:latest`, JSON.stringify({ game, username, savedAt: Date.now() }));
+      } catch {}
+    }
+
+    function loadSnapshot() {
+      try {
+        const raw = localStorage.getItem(`${storagePrefix}:latest`);
+        if (!raw) return;
+        const saved = JSON.parse(raw);
+        if (saved?.game?.players && saved?.game?.blocks) game = saved.game;
+      } catch {}
+    }
+
+    async function startBombermanMultiplayer() {
+      if (!multiplayerEnabled) return;
+      lobby = new PeernetLobby('v10-bomberman-session', { storageKey: 'v10-bomberman', debug: false });
+      lobby.addEventListener('status', (event) => {
+        netStatus.textContent = `Network: ${event.detail?.text || 'connecting'}`;
+      });
+      lobby.addEventListener('data', ({ detail }) => {
+        const { from, data } = detail;
+        if (!data || from === myPeerId) return;
+        if (data.type === 'bomberman-state' && data.payload?.game) {
+          if (targetPeerId && from !== targetPeerId && from !== hostPeerId) return;
+          hostPeerId = from;
+          applyingRemoteState = true;
+          game = data.payload.game;
+          playerCount.value = String(game.players.length);
+          applyingRemoteState = false;
+          saveSnapshot();
+          render();
+        }
+        if (data.type === 'bomberman-request-state') {
+          broadcastBombermanState('request-reply', true);
+        }
+      });
+      myPeerId = await lobby.connect(username);
+      if (targetPeerId) {
+        lobby.send?.(targetPeerId, { type: 'bomberman-request-state', payload: { username, targetPeerId, at: Date.now() } });
+      }
+      broadcastBombermanState('join', true);
+    }
+
+    function broadcastBombermanState(reason = 'state', force = false) {
+      if (!lobby || applyingRemoteState) return;
+      const now = Date.now();
+      if (!force && now - lastBroadcastAt < 220) return;
+      lastBroadcastAt = now;
+      lobby.broadcast({
+        type: 'bomberman-state',
+        payload: { game, username, reason, sessionId, targetPeerId, at: now },
+      });
+    }
+
+
+    loadSnapshot();
+    startBombermanMultiplayer().catch((error) => {
+      netStatus.textContent = `Network error: ${error?.message || error}`;
+    });
+    render();
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    window.addEventListener('pagehide', destroyGame);
+    window.addEventListener('beforeunload', destroyGame);
+    startLoop();
+  </script>
+</body>
+</html>

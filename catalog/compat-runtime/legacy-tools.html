@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>NEXUS v11 Legacy Utility Ports</title>
+  <style>
+    :root { color-scheme: dark; --accent:#00ffff; --bg:#060713; --panel:rgba(0,18,30,.82); --muted:rgba(232,251,255,.68); }
+    * { box-sizing:border-box; }
+    body { margin:0; min-height:100vh; font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,sans-serif; background:radial-gradient(circle at top left,rgba(0,255,255,.18),transparent 28rem),var(--bg); color:#e8fbff; }
+    .shell { display:grid; grid-template-columns:minmax(220px,300px) 1fr; min-height:100vh; }
+    nav { border-right:1px solid rgba(0,255,255,.22); background:rgba(0,0,0,.35); padding:1rem; }
+    main { padding:1rem; }
+    h1 { margin:0 0 .25rem; font-size:1rem; letter-spacing:.08em; text-transform:uppercase; color:var(--accent); }
+    .muted { color:var(--muted); }
+    button, input, textarea { border:1px solid rgba(0,255,255,.35); border-radius:.7rem; padding:.55rem .7rem; background:rgba(0,0,0,.38); color:inherit; }
+    button { cursor:pointer; text-align:left; }
+    nav button { display:block; width:100%; margin:.4rem 0; }
+    nav button.active, button:hover { border-color:var(--accent); box-shadow:0 0 1rem rgba(0,255,255,.12); }
+    .card { border:1px solid rgba(0,255,255,.2); border-radius:1rem; padding:1rem; background:var(--panel); box-shadow:0 1rem 4rem rgba(0,0,0,.28); }
+    .stack { display:grid; gap:.75rem; }
+    .row { display:flex; flex-wrap:wrap; gap:.5rem; align-items:center; }
+    textarea { min-height:55vh; resize:vertical; width:100%; font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace; line-height:1.45; }
+    .calc-grid { display:grid; grid-template-columns:repeat(4,minmax(3rem,1fr)); gap:.45rem; max-width:28rem; }
+    .display { max-width:28rem; font:1.5rem ui-monospace,SFMono-Regular,Menlo,Consolas,monospace; text-align:right; letter-spacing:.04em; }
+    .history { max-width:28rem; min-height:10rem; white-space:pre-wrap; font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace; }
+    .external-card { max-width:42rem; }
+    @media (max-width:720px) { .shell { grid-template-columns:1fr; } nav { border-right:0; border-bottom:1px solid rgba(0,255,255,.22); } }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <nav class="stack">
+      <div>
+        <h1>Legacy utilities</h1>
+        <div class="muted">v4 / v8 / v9 / v10 text editors and calculator ported into a thin v11 utility host.</div>
+      </div>
+      <div id="toolNav"></div>
+    </nav>
+    <main id="app" class="stack"></main>
+  </div>
+
+  <script type="module">
+    import { LEGACY_TOOLS, createCalculatorMachine } from './lib/legacy-tools.mjs';
+
+    const $ = (id) => document.getElementById(id);
+    const esc = (value = '') => String(value).replace(/[&<>"]/g, (char) => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;' }[char]));
+    const params = new URLSearchParams(location.search);
+    let active = LEGACY_TOOLS.find((tool) => tool.id === params.get('tool')) || LEGACY_TOOLS[0];
+
+    function renderNav() {
+      $('toolNav').innerHTML = LEGACY_TOOLS.map((tool) => `<button type="button" class="${tool.id === active.id ? 'active' : ''}" data-tool="${tool.id}"><strong>${esc(tool.title)}</strong><br><span class="muted">${esc(tool.lineage)} · ${esc(tool.kind)}</span></button>`).join('');
+      $('toolNav').querySelectorAll('[data-tool]').forEach((button) => button.addEventListener('click', () => {
+        active = LEGACY_TOOLS.find((tool) => tool.id === button.dataset.tool);
+        history.replaceState(null, '', `?tool=${encodeURIComponent(active.id)}`);
+        render();
+      }));
+    }
+
+    function render() {
+      renderNav();
+      if (active.kind === 'calculator') return renderCalculator(active);
+      if (active.kind === 'shared-pad') return renderSharedPad(active);
+      if (active.kind === 'external-editor') return renderExternalEditor(active);
+      return renderNotepad(active);
+    }
+
+    function renderNotepad(tool) {
+      const saved = localStorage.getItem(tool.storageKey) || '';
+      $('app').innerHTML = `<section class="card stack"><div><h2>${esc(tool.title)}</h2><p class="muted">${esc(tool.desc)}</p></div><textarea id="note" spellcheck="true" placeholder="Start typing…">${esc(saved)}</textarea><div class="row"><button id="clear" type="button">Clear</button><span id="status" class="muted">${saved.length} chars restored</span></div></section>`;
+      const note = $('note');
+      const status = $('status');
+      note.addEventListener('input', () => {
+        localStorage.setItem(tool.storageKey, note.value);
+        status.textContent = `${note.value.length} chars saved locally`;
+      });
+      $('clear').addEventListener('click', () => { note.value = ''; localStorage.removeItem(tool.storageKey); status.textContent = 'cleared'; });
+    }
+
+    function renderSharedPad(tool) {
+      const channel = 'BroadcastChannel' in window ? new BroadcastChannel('v11-legacy-shared-pad') : null;
+      renderNotepad(tool);
+      const note = $('note');
+      const status = $('status');
+      let suppress = false;
+      note.addEventListener('input', () => {
+        if (suppress) return;
+        channel?.postMessage({ type:'text', value: note.value, at: Date.now() });
+        status.textContent = `${note.value.length} chars saved and broadcast`;
+      });
+      if (channel) channel.onmessage = (event) => {
+        if (event.data?.type !== 'text' || event.data.value === note.value) return;
+        suppress = true;
+        note.value = event.data.value;
+        localStorage.setItem(tool.storageKey, note.value);
+        suppress = false;
+        status.textContent = `received ${note.value.length} chars from another tab`;
+      };
+    }
+
+    function renderExternalEditor(tool) {
+      $('app').innerHTML = `<section class="card stack external-card"><div><h2>${esc(tool.title)}</h2><p class="muted">${esc(tool.desc)}</p></div><div class="row"><a href="${esc(tool.href)}" target="_blank" rel="noopener noreferrer"><button type="button" data-external-href="${esc(tool.href)}">Open legacy editor</button></a><span class="muted">${esc(tool.href)}</span></div></section>`;
+    }
+
+    function renderCalculator(tool) {
+      const buttons = ['7','8','9','/','4','5','6','*','1','2','3','-','0','.','=','+','C','⌫','(',')'];
+      const storedHistory = JSON.parse(localStorage.getItem(tool.storageKey) || '[]');
+      const calculator = createCalculatorMachine({ history: storedHistory });
+      $('app').innerHTML = `<section class="card stack"><div><h2>${esc(tool.title)}</h2><p class="muted">${esc(tool.desc)}</p></div><input id="display" class="display" value="${esc(calculator.display)}" inputmode="decimal"><div class="calc-grid">${buttons.map((label) => `<button type="button" data-calc="${esc(label)}">${esc(label)}</button>`).join('')}</div><div class="row"><button id="clearHistory" type="button">Clear history</button></div><pre id="history" class="card history"></pre></section>`;
+      const display = $('display');
+      const historyEl = $('history');
+      const saveHistory = () => localStorage.setItem(tool.storageKey, JSON.stringify(calculator.history));
+      const paint = () => {
+        display.value = calculator.display;
+        historyEl.textContent = calculator.history.slice(-12).reverse().join('\n');
+      };
+      $('app').querySelectorAll('[data-calc]').forEach((button) => button.addEventListener('click', () => {
+        calculator.press(button.dataset.calc);
+        saveHistory();
+        paint();
+      }));
+      display.addEventListener('keydown', (event) => {
+        if (event.key === 'Enter') {
+          const manual = createCalculatorMachine({ display: display.value, history: calculator.history });
+          manual.press('=');
+          localStorage.setItem(tool.storageKey, JSON.stringify(manual.history));
+          location.reload();
+        }
+      });
+      $('clearHistory').addEventListener('click', () => { calculator.clearHistory(); localStorage.removeItem(tool.storageKey); paint(); });
+      paint();
+    }
+
+    render();
+  </script>
+</body>
+</html>

@@ -1,0 +1,136 @@
+<!doctype html>
+<html lang="en" data-theme="nexus">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>NEXUS Markdown Viewer</title>
+  <style id="themeStyles"></style>
+  <style>
+    :root { --hub-accent:#00ffff; --hub-background:#060713; --hub-surface:rgba(5,16,28,.74); --hub-panel:rgba(0,0,0,.34); --hub-text:#e8fbff; --hub-muted:rgba(232,251,255,.68); --hub-glow:rgba(0,255,255,.22); color-scheme:dark; }
+    * { box-sizing:border-box; }
+    body { margin:0; min-height:100vh; font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,sans-serif; color:var(--hub-text); background:radial-gradient(circle at top left,var(--hub-glow),transparent 28rem),radial-gradient(circle at 90% 0,color-mix(in srgb,var(--hub-accent),transparent 86%),transparent 24rem),var(--hub-background); }
+    .shell { display:grid; grid-template-columns:minmax(250px,330px) minmax(0,1fr); min-height:100vh; }
+    aside { padding:1rem; border-right:1px solid color-mix(in srgb,var(--hub-accent),transparent 72%); background:var(--hub-panel); backdrop-filter:blur(16px); position:sticky; top:0; max-height:100vh; overflow:auto; }
+    main { padding:clamp(1rem,3vw,2.5rem); }
+    .brand { letter-spacing:.1em; color:var(--hub-accent); text-transform:uppercase; font-weight:800; }
+    .muted { color:var(--hub-muted); }
+    .card { border:1px solid color-mix(in srgb,var(--hub-accent),transparent 70%); border-radius:1.2rem; padding:1rem; background:var(--hub-surface); box-shadow:0 1.5rem 5rem rgba(0,0,0,.28); }
+    .stack { display:grid; gap:.8rem; }
+    input, select, button, textarea { border:1px solid color-mix(in srgb,var(--hub-accent),transparent 55%); border-radius:.75rem; background:rgba(0,0,0,.38); color:inherit; padding:.6rem .75rem; font:inherit; }
+    input, textarea { width:100%; }
+    button { cursor:pointer; }
+    button:hover, a:hover { border-color:var(--hub-accent); filter:brightness(1.08); }
+    .row { display:flex; flex-wrap:wrap; gap:.5rem; align-items:center; }
+    .pill { display:inline-flex; border:1px solid color-mix(in srgb,var(--hub-accent),transparent 60%); color:var(--hub-accent); border-radius:999px; padding:.18rem .5rem; font-size:.75rem; }
+    #toc a { display:block; color:var(--hub-muted); text-decoration:none; border-left:2px solid transparent; padding:.25rem .4rem; margin:.1rem 0; }
+    #toc a:hover { color:var(--hub-text); border-left-color:var(--hub-accent); }
+    .toc-l2 { padding-left:1rem!important; } .toc-l3 { padding-left:2rem!important; } .toc-l4 { padding-left:3rem!important; }
+    article { max-width:980px; margin:0 auto; }
+    .doc-head { margin-bottom:1rem; }
+    .markdown-body { line-height:1.68; font-size:1.02rem; }
+    .markdown-body h1, .markdown-body h2, .markdown-body h3, .markdown-body h4 { line-height:1.15; margin:1.8em 0 .55em; color:var(--hub-text); scroll-margin-top:1rem; }
+    .markdown-body h1 { font-size:clamp(2rem,5vw,3.4rem); letter-spacing:-.04em; color:var(--hub-accent); text-shadow:0 0 1.8rem var(--hub-glow); }
+    .markdown-body h2 { font-size:1.65rem; border-bottom:1px solid color-mix(in srgb,var(--hub-accent),transparent 75%); padding-bottom:.35rem; }
+    .markdown-body h3 { font-size:1.25rem; color:color-mix(in srgb,var(--hub-accent),white 38%); }
+    .markdown-body p, .markdown-body li { color:color-mix(in srgb,var(--hub-text),transparent 8%); }
+    .markdown-body a { color:var(--hub-accent); text-decoration:none; border-bottom:1px dotted currentColor; }
+    .markdown-body code { background:rgba(0,0,0,.42); border:1px solid color-mix(in srgb,var(--hub-accent),transparent 78%); border-radius:.4rem; padding:.08rem .32rem; color:color-mix(in srgb,var(--hub-accent),white 38%); }
+    .markdown-body pre { position:relative; overflow:auto; padding:1rem; border-radius:1rem; background:rgba(0,0,0,.55); border:1px solid color-mix(in srgb,var(--hub-accent),transparent 68%); box-shadow:inset 0 0 2rem rgba(0,0,0,.22); }
+    .markdown-body pre::before { content:attr(data-lang); position:absolute; right:.75rem; top:.45rem; color:var(--hub-muted); font-size:.72rem; text-transform:uppercase; }
+    .markdown-body pre code { background:transparent; border:0; padding:0; color:inherit; }
+    .markdown-body blockquote { margin:1rem 0; padding:.8rem 1rem; border-left:.25rem solid var(--hub-accent); background:color-mix(in srgb,var(--hub-accent),transparent 92%); border-radius:.75rem; }
+    .markdown-body table { width:100%; border-collapse:collapse; font-size:.95rem; }
+    .md-table-wrap { overflow:auto; border:1px solid color-mix(in srgb,var(--hub-accent),transparent 76%); border-radius:1rem; }
+    .markdown-body th, .markdown-body td { padding:.65rem .75rem; border-bottom:1px solid color-mix(in srgb,var(--hub-accent),transparent 82%); text-align:left; }
+    .markdown-body th { color:var(--hub-accent); background:rgba(0,0,0,.25); }
+    .markdown-body img { max-width:100%; border-radius:1rem; border:1px solid color-mix(in srgb,var(--hub-accent),transparent 70%); }
+    .drop { border:1px dashed color-mix(in srgb,var(--hub-accent),transparent 45%); border-radius:1rem; padding:.8rem; text-align:center; color:var(--hub-muted); }
+    @media(max-width:840px){ .shell{grid-template-columns:1fr;} aside{position:relative;max-height:none;border-right:0;border-bottom:1px solid color-mix(in srgb,var(--hub-accent),transparent 72%);} }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <aside class="stack">
+      <div><div class="brand">NEXUS Markdown</div><div class="muted">theme-compliant document renderer</div></div>
+      <div class="card stack">
+        <label>Markdown URL<input id="srcInput" placeholder="../README.md or docs/ROADMAP.md"></label>
+        <div class="row"><button id="loadBtn" type="button">Load</button><button id="openRawBtn" type="button">Open raw</button></div>
+        <label>Theme<select id="themeSelect"></select></label>
+        <label class="drop">Drop local .md file<input id="fileInput" type="file" accept=".md,.markdown,text/markdown,text/plain" hidden></label>
+        <textarea id="pasteBox" rows="7" placeholder="Or paste Markdown here…"></textarea>
+        <button id="renderPasteBtn" type="button">Render pasted Markdown</button>
+      </div>
+      <div class="card stack"><strong>Document</strong><div id="meta" class="muted">No document loaded yet.</div><div class="row"><span id="wordCount" class="pill">0 words</span><span id="headingCount" class="pill">0 headings</span></div></div>
+      <nav id="toc" class="card stack" aria-label="Table of contents"></nav>
+    </aside>
+    <main>
+      <article class="card">
+        <header class="doc-head"><div id="sourceLabel" class="pill">markdown viewer</div></header>
+        <section id="content" class="markdown-body"><h1>Markdown Viewer</h1><p class="muted">Choose a Markdown file from the URL field, drop a local file, or paste Markdown into the editor.</p></section>
+      </article>
+    </main>
+  </div>
+  <script type="module">
+    import { themes, applyThemeTokens, buildThemeStyleText } from './lib/themes.js';
+    import { readHubSetting, writeHubSetting } from './lib/storage.js';
+    import { renderMarkdown, extractHeadings, escapeHtml } from './lib/markdown-renderer.mjs';
+
+    const $ = (id) => document.getElementById(id);
+    $('themeStyles').textContent = buildThemeStyleText(themes);
+    const params = new URLSearchParams(location.search);
+    const initialSrc = params.get('src') || params.get('file') || '';
+    const initialTheme = params.get('theme') || readHubSetting('theme', 'nexus');
+
+    $('themeSelect').innerHTML = themes.map((theme) => `<option value="${theme.id}">${theme.title} · ${theme.mood}</option>`).join('');
+    $('themeSelect').value = initialTheme;
+    applyThemeTokens(initialTheme);
+    $('srcInput').value = initialSrc;
+
+    $('themeSelect').addEventListener('change', () => {
+      applyThemeTokens($('themeSelect').value);
+      writeHubSetting('theme', $('themeSelect').value);
+    });
+    $('loadBtn').addEventListener('click', () => loadSource($('srcInput').value));
+    $('openRawBtn').addEventListener('click', () => { if ($('srcInput').value) window.open($('srcInput').value, '_blank', 'noopener,noreferrer'); });
+    $('renderPasteBtn').addEventListener('click', () => renderDocument($('pasteBox').value, 'pasted Markdown'));
+    $('fileInput').addEventListener('change', async (event) => {
+      const file = event.target.files?.[0];
+      if (!file) return;
+      renderDocument(await file.text(), file.name);
+    });
+    document.querySelector('.drop').addEventListener('dragover', (event) => { event.preventDefault(); });
+    document.querySelector('.drop').addEventListener('drop', async (event) => {
+      event.preventDefault();
+      const file = event.dataTransfer?.files?.[0];
+      if (file) renderDocument(await file.text(), file.name);
+    });
+
+    async function loadSource(src) {
+      const clean = String(src || '').trim();
+      if (!clean) return;
+      $('meta').textContent = `Loading ${clean}…`;
+      const response = await fetch(clean);
+      if (!response.ok) throw new Error(`Could not load ${clean}: ${response.status}`);
+      renderDocument(await response.text(), clean);
+      const next = new URL(location.href);
+      next.searchParams.set('src', clean);
+      history.replaceState(null, '', next);
+    }
+
+    function renderDocument(markdown, label = 'Markdown') {
+      const headings = extractHeadings(markdown);
+      $('content').innerHTML = renderMarkdown(markdown);
+      $('sourceLabel').textContent = label;
+      $('meta').textContent = label;
+      $('wordCount').textContent = `${String(markdown).trim().split(/\s+/).filter(Boolean).length} words`;
+      $('headingCount').textContent = `${headings.length} headings`;
+      $('toc').innerHTML = headings.length ? headings.map((heading) => `<a class="toc-l${Math.min(4, heading.level)}" href="#${heading.id}">${escapeHtml(heading.text)}</a>`).join('') : '<span class="muted">No headings detected.</span>';
+    }
+
+    if (initialSrc) loadSource(initialSrc).catch((error) => {
+      $('meta').textContent = error.message;
+      $('content').innerHTML = `<h1>Load failed</h1><p>${escapeHtml(error.message)}</p>`;
+    });
+  </script>
+</body>
+</html>

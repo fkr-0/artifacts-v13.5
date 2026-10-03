@@ -1,0 +1,34 @@
+:root{
+  --bg-primary:#0a0a12;
+  --bg-secondary:#12121f;
+  --fg-primary:#00ffff;
+  --fg-secondary:#ff00ff;
+  --accent:#00ff88;
+  --accent-secondary:#ff3366;
+  --glow-primary:rgba(0,255,255,.5);
+  --glow-secondary:rgba(255,0,255,.5);
+  --grid-color:rgba(0,255,255,.08);
+  --shell-gap:1.5rem;
+  color-scheme:dark;
+}
+.hub-app-shell{
+  margin:0;
+  min-height:100vh;
+  background:
+    radial-gradient(circle at 14% 8%,var(--glow-primary),transparent 28rem),
+    radial-gradient(circle at 90% 22%,var(--glow-secondary),transparent 24rem),
+    linear-gradient(var(--grid-color) 1px,transparent 1px),
+    linear-gradient(90deg,var(--grid-color) 1px,transparent 1px),
+    var(--bg-primary);
+  background-size:auto,auto,32px 32px,32px 32px,auto;
+  color:var(--fg-primary);
+  font-family:'Share Tech Mono',ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+}
+.hub-app-shell *{box-sizing:border-box}.hub-app-shell .font-orb,.hub-app-shell h1,.hub-app-shell h2,.hub-app-shell h3{font-family:'Orbitron',ui-sans-serif,sans-serif;letter-spacing:.08em;text-transform:uppercase}.hub-app-shell a{color:var(--fg-primary)}
+.hub-app-shell .shell,.hub-app-shell .app,.hub-app-shell .main{gap:var(--shell-gap)}
+.hub-app-shell .panel,.hub-app-shell .card,.hub-app-shell .artifact-card,.hub-app-shell .artifact-row{background:linear-gradient(135deg,rgba(18,18,31,.95),var(--bg-secondary));border:1px solid rgba(0,255,255,.35);border-radius:3px;box-shadow:0 0 16px rgba(0,255,255,.10),inset 0 0 22px rgba(0,255,255,.035)}
+.hub-app-shell .panel,.hub-app-shell .card{padding:1rem}.hub-app-shell .artifact-card,.hub-app-shell .artifact-row{padding:.85rem;transition:border-color .16s,box-shadow .16s,transform .16s}.hub-app-shell .artifact-card:hover,.hub-app-shell .artifact-row:hover{border-color:var(--fg-primary);box-shadow:0 0 18px var(--glow-primary);transform:translateY(-1px)}
+.hub-app-shell .toolbar,.hub-app-shell .row,.hub-app-shell .tag-filter,.hub-app-shell .launch-icons{gap:.5rem}.hub-app-shell input,.hub-app-shell select,.hub-app-shell textarea,.hub-app-shell button{background:rgba(0,0,0,.38);border:1px solid rgba(0,255,255,.24);border-radius:3px;color:var(--fg-primary);font-family:inherit}.hub-app-shell button{cursor:pointer}.hub-app-shell button:hover{border-color:var(--fg-primary);box-shadow:0 0 10px var(--glow-primary)}
+.hub-app-shell .tag-button,.hub-app-shell .tag-pill,.hub-app-shell .pill{font-size:.65rem;padding:.15rem .4rem;border-radius:3px;border:1px solid rgba(0,255,255,.22);background:rgba(0,255,255,.08);color:var(--fg-primary)}.hub-app-shell .tag-button.active{background:var(--accent);border-color:var(--accent);color:#000;box-shadow:0 0 10px rgba(0,255,136,.4)}
+.hub-app-shell .content-body,.hub-app-shell main,.hub-app-shell .canvas-wrap{padding:1.25rem}.hub-app-shell .workspace-pane,.hub-app-shell .app-deck{border-top:2px solid var(--accent)}
+.hub-app-shell::before{content:"";position:fixed;inset:0;pointer-events:none;background:repeating-linear-gradient(0deg,rgba(255,255,255,.035) 0 1px,transparent 1px 3px);opacity:.24;mix-blend-mode:screen;z-index:9999}

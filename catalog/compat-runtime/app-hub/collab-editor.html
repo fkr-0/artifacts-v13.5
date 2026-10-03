@@ -1,0 +1,703 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Collab Code Editor // NEXUS v8</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700;900&family=Share+Tech+Mono&display=swap" rel="stylesheet"/>
+  <style>
+    :root {
+      --bg-primary: #0a0a12;
+      --bg-secondary: #12121f;
+      --fg-primary: #00ffff;
+      --fg-secondary: #ff00ff;
+      --accent: #00ff88;
+      --accent-secondary: #ff3366;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Share Tech Mono', monospace;
+      background: var(--bg-primary);
+      color: var(--fg-primary);
+      min-height: 100vh;
+      overflow: hidden;
+    }
+    .font-orb { font-family: 'Orbitron', sans-serif; }
+
+    /* HEADER */
+    .header {
+      background: linear-gradient(180deg, var(--bg-secondary), transparent);
+      border-bottom: 1px solid var(--fg-primary);
+      padding: 0.75rem 1.25rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+    .logo {
+      font-family: 'Orbitron', sans-serif;
+      font-weight: 900;
+      font-size: 1rem;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--fg-primary);
+      text-shadow: 0 0 10px var(--fg-primary), 0 0 30px var(--fg-primary);
+    }
+    .status-bar {
+      display: flex;
+      gap: 1rem;
+      align-items: center;
+      font-size: 0.75rem;
+      flex-wrap: wrap;
+    }
+    .status-item {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      animation: pulse 2s infinite;
+    }
+    .dot.online { background: var(--accent); box-shadow: 0 0 8px var(--accent); }
+    .dot.offline { background: #666; animation: none; }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+
+    /* MAIN LAYOUT */
+    .main {
+      display: flex;
+      height: calc(100vh - 60px);
+    }
+
+    /* SIDEBAR */
+    .sidebar {
+      width: 280px;
+      background: var(--bg-secondary);
+      border-right: 1px solid rgba(0, 255, 255, 0.1);
+      display: flex;
+      flex-direction: column;
+      padding: 1rem;
+      gap: 1rem;
+      overflow-y: auto;
+    }
+    .sidebar-section {
+      border: 1px solid rgba(0, 255, 255, 0.1);
+      border-radius: 8px;
+      padding: 1rem;
+      background: rgba(0, 255, 255, 0.02);
+    }
+    .sidebar-title {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--accent);
+      margin-bottom: 0.75rem;
+    }
+    .user-input {
+      width: 100%;
+      padding: 0.5rem;
+      background: rgba(0, 255, 255, 0.05);
+      border: 1px solid rgba(0, 255, 255, 0.2);
+      border-radius: 4px;
+      color: var(--fg-primary);
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 0.85rem;
+      margin-bottom: 0.5rem;
+    }
+    .user-input:focus {
+      outline: none;
+      border-color: var(--accent);
+    }
+    .user-input::placeholder {
+      color: rgba(0, 255, 255, 0.3);
+    }
+    .btn {
+      padding: 0.5rem 1rem;
+      background: rgba(0, 255, 255, 0.1);
+      border: 1px solid var(--fg-primary);
+      border-radius: 4px;
+      color: var(--fg-primary);
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 0.75rem;
+      cursor: pointer;
+      transition: all 0.2s;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    .btn:hover {
+      background: rgba(0, 255, 255, 0.2);
+      box-shadow: 0 0 10px var(--fg-primary);
+    }
+    .btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+    .user-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      max-height: 200px;
+      overflow-y: auto;
+    }
+    .user-item {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.5rem;
+      background: rgba(255, 255, 255, 0.03);
+      border-radius: 4px;
+      font-size: 0.8rem;
+    }
+    .user-item .cursor {
+      width: 10px;
+      height: 10px;
+      border-radius: 2px;
+    }
+    .user-item .name {
+      flex: 1;
+    }
+    .user-item.is-you {
+      background: rgba(0, 255, 136, 0.1);
+      border: 1px solid var(--accent);
+    }
+    .code-display {
+      background: rgba(0, 0, 0, 0.3);
+      border-radius: 4px;
+      padding: 0.75rem;
+      font-size: 0.7rem;
+      color: rgba(0, 255, 255, 0.7);
+      word-break: break-all;
+      max-height: 80px;
+      overflow-y: auto;
+    }
+
+    /* EDITOR CONTAINER */
+    .editor-container {
+      flex: 1;
+      position: relative;
+    }
+    #monaco-editor {
+      width: 100%;
+      height: 100%;
+    }
+
+    /* BACK TO PORTAL */
+    .back-link {
+      position: fixed;
+      bottom: 1rem;
+      right: 1rem;
+      padding: 0.5rem 1rem;
+      background: rgba(0, 255, 255, 0.1);
+      border: 1px solid var(--fg-primary);
+      border-radius: 4px;
+      color: var(--fg-primary);
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 0.7rem;
+      text-decoration: none;
+      transition: all 0.2s;
+      z-index: 100;
+    }
+    .back-link:hover {
+      background: rgba(0, 255, 255, 0.2);
+      box-shadow: 0 0 10px var(--fg-primary);
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation: none !important;
+        transition: none !important;
+        scroll-behavior: auto !important;
+      }
+    }
+</style>
+</head>
+<body>
+  <a href="../app-hub-v11/index.html" style="position:fixed;top:.75rem;right:.75rem;z-index:1000;border:1px solid rgba(0,255,255,.45);border-radius:999px;padding:.35rem .65rem;background:rgba(0,0,0,.72);color:#00ffff;text-decoration:none;font:12px ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;box-shadow:0 0 1rem rgba(0,255,255,.18)">↗ v11 hub</a>
+
+<header class="header">
+  <div class="logo">⚡ Collab Code Editor</div>
+  <div class="status-bar">
+    <div class="status-item">
+      <div class="dot" id="connection-dot"></div>
+      <span id="connection-status">Disconnected</span>
+    </div>
+    <div class="status-item">
+      <span>Users: <strong id="user-count">0</strong></span>
+    </div>
+    <div class="status-item">
+      <span>Room: <strong id="room-id">---</strong></span>
+    </div>
+  </div>
+</header>
+
+<div class="main">
+  <aside class="sidebar">
+    <!-- Username Section -->
+    <div class="sidebar-section">
+      <div class="sidebar-title">Identity</div>
+      <input type="text" id="username-input" class="user-input" placeholder="Enter username..." maxlength="20"/>
+      <button class="btn" id="set-username-btn" style="width:100%">Set Username</button>
+    </div>
+
+    <!-- Connection Section -->
+    <div class="sidebar-section">
+      <div class="sidebar-title">Connection</div>
+      <button class="btn" id="connect-btn" style="width:100%; margin-bottom:0.5rem">Connect to P2P Network</button>
+      <button class="btn" id="create-room-btn" style="width:100%; margin-bottom:0.5rem" disabled>Create New Room</button>
+      <div class="code-display" id="room-code"></div>
+    </div>
+
+    <!-- Connected Users -->
+    <div class="sidebar-section">
+      <div class="sidebar-title">Connected Users</div>
+      <div class="user-list" id="user-list">
+        <div style="color:rgba(0,255,255,0.3); font-size:0.75rem; text-align:center; padding:1rem">
+          No users connected
+        </div>
+      </div>
+    </div>
+
+    <!-- Room Info -->
+    <div class="sidebar-section">
+      <div class="sidebar-title">Room Controls</div>
+      <button class="btn" id="join-room-btn" style="width:100%">Join by Room ID</button>
+      <input type="text" id="room-input" class="user-input" placeholder="Enter Room ID..." style="margin-top:0.5rem"/>
+    </div>
+  </aside>
+
+  <main class="editor-container">
+    <div id="monaco-editor"></div>
+  </main>
+</div>
+
+<a href="v8-portal.html" class="back-link">← Back to Portal</a>
+
+<!-- Load Monaco Editor from CDN -->
+<script src="https://cdn.jsdelivr.net/npm/monaco-editor@0.45.0/min/vs/loader.js"></script>
+<!-- Load PeerJS for P2P -->
+<script src="https://cdn.jsdelivr.net/npm/peerjs@1.5.2/dist/peerjs.min.js"></script>
+
+<script>
+// ============================================
+// COLLABORATIVE EDITOR STATE
+// ============================================
+const state = {
+  username: 'User-' + Math.floor(Math.random() * 10000),
+  peer: null,
+  connections: new Map(), // peerId -> { connection, username, color, cursor }
+  room: null,
+  isHost: false,
+  editor: null,
+  document: {
+    version: 0,
+    content: `// Welcome to Collab Code Editor!
+//
+// This is a real-time collaborative text editor powered by:
+// - Monaco Editor (VS Code's editor)
+// - PeerJS (WebRTC P2P networking)
+// - CRDT-lite operational transformation
+//
+// Features:
+// - Set your username and join/create rooms
+// - See connected users with cursor colors
+// - Real-time text synchronization
+// - P2P - no server required!
+//
+// Get started:
+// 1. Set your username (top left)
+// 2. Click "Connect to P2P Network"
+// 3. Create a room or join with a Room ID
+// 4. Share the Room ID with collaborators
+//
+// Try editing this text with multiple users!
+
+function fibonacci(n) {
+  if (n <= 1) return n;
+  return fibonacci(n - 1) + fibonacci(n - 2);
+}
+
+console.log('Fibonacci(10):', fibonacci(10));
+`,
+    pendingOps: []
+  }
+};
+
+// Color palette for user cursors
+const colors = [
+  '#ff0000', '#00ff00', '#0000ff', '#ffff00', '#ff00ff', '#00ffff',
+  '#ff8800', '#88ff00', '#0088ff', '#ff0088', '#88ff88', '#8888ff'
+];
+const getColor = (id) => colors[id.hashCode() % colors.length];
+
+// String hash for consistent colors
+String.prototype.hashCode = function() {
+  let hash = 0;
+  for (let i = 0; i < this.length; i++) {
+    hash = ((hash << 5) - hash) + this.charCodeAt(i);
+    hash = hash & hash;
+  }
+  return Math.abs(hash);
+};
+
+// ============================================
+// MONACO EDITOR SETUP
+// ============================================
+require.config({ paths: { vs: 'https://cdn.jsdelivr.net/npm/monaco-editor@0.45.0/min/vs' } });
+
+require(['vs/editor/editor.main'], function () {
+  // Create Monaco editor
+  state.editor = monaco.editor.create(document.getElementById('monaco-editor'), {
+    value: state.document.content,
+    language: 'javascript',
+    theme: 'vs-dark',
+    automaticLayout: true,
+    fontSize: 14,
+    fontFamily: "'Share Tech Mono', monospace",
+    minimap: { enabled: false },
+    scrollBeyondLastLine: false,
+    wordWrap: 'on',
+    lineNumbers: 'on',
+    renderLineHighlight: 'all',
+    cursorBlinking: 'smooth',
+    smoothScrolling: true,
+    padding: { top: 20 }
+  });
+
+  // Track local changes for broadcasting
+  state.editor.onDidChangeModelContent((e) => {
+    if (state.isRemoteChange) return;
+    const change = {
+      version: ++state.document.version,
+      changes: e.changes.map(c => ({
+        range: { startLineNumber: c.range.startLineNumber, startColumn: c.range.startColumn, endLineNumber: c.range.endLineNumber, endColumn: c.range.endColumn },
+        text: c.text,
+        rangeLength: c.rangeLength
+      }))
+    };
+    broadcastChange(change);
+  });
+
+  // Track cursor position
+  state.editor.onDidChangeCursorPosition((e) => {
+    broadcastCursor(e.position);
+  });
+
+  // Set initial username and update UI
+  document.getElementById('username-input').value = state.username;
+  updateUserList();
+});
+
+// ============================================
+// P2P NETWORKING (PeerJS)
+// ============================================
+
+function initializePeer() {
+  state.peer = new Peer(null, {
+    debug: 2
+  });
+
+  state.peer.on('open', (id) => {
+    console.log('My peer ID:', id);
+    state.peerId = id;
+    updateConnectionStatus(true);
+  });
+
+  state.peer.on('connection', (conn) => {
+    handleIncomingConnection(conn);
+  });
+
+  state.peer.on('error', (err) => {
+    console.error('Peer error:', err);
+    updateConnectionStatus(false, 'Connection Error');
+  });
+}
+
+function handleIncomingConnection(conn) {
+  conn.on('open', () => {
+    console.log('Incoming connection from:', conn.peer);
+
+    // Send current document state to new peer
+    conn.send({
+      type: 'init',
+      document: state.document.content,
+      version: state.document.version,
+      username: state.username
+    });
+
+    // Store connection
+    const userData = {
+      connection: conn,
+      username: 'Unknown',
+      color: getColor(conn.peer),
+      cursor: null
+    };
+    state.connections.set(conn.peer, userData);
+
+    updateUserList();
+
+    conn.on('data', (data) => handlePeerData(conn.peer, data));
+    conn.on('close', () => handleDisconnection(conn.peer));
+  });
+}
+
+function connectToPeer(peerId) {
+  if (state.connections.has(peerId)) {
+    console.log('Already connected to:', peerId);
+    return;
+  }
+
+  const conn = state.peer.connect(peerId, { reliable: true });
+
+  conn.on('open', () => {
+    console.log('Connected to:', peerId);
+
+    const userData = {
+      connection: conn,
+      username: 'Unknown',
+      color: getColor(peerId),
+      cursor: null
+    };
+    state.connections.set(peerId, userData);
+
+    updateUserList();
+
+    conn.on('data', (data) => handlePeerData(peerId, data));
+    conn.on('close', () => handleDisconnection(peerId));
+  });
+
+  conn.on('error', (err) => {
+    console.error('Connection error:', err);
+  });
+}
+
+function handleDisconnection(peerId) {
+  console.log('Disconnected:', peerId);
+  state.connections.delete(peerId);
+  updateUserList();
+}
+
+// ============================================
+// MESSAGE HANDLING
+// ============================================
+
+function handlePeerData(peerId, data) {
+  const userData = state.connections.get(peerId);
+  if (!userData) return;
+
+  switch (data.type) {
+    case 'init':
+      // Initialize with host's document
+      if (state.document.version === 0) {
+        state.isRemoteChange = true;
+        state.editor.setValue(data.document);
+        state.document.version = data.version;
+        state.isRemoteChange = false;
+      }
+      userData.username = data.username;
+      updateUserList();
+      break;
+
+    case 'username':
+      userData.username = data.username;
+      updateUserList();
+      break;
+
+    case 'change':
+      applyRemoteChange(data.change);
+      break;
+
+    case 'cursor':
+      userData.cursor = data.position;
+      // Could render remote cursors here
+      break;
+
+    case 'join':
+      // New user joining, they'll get init from host
+      connectToPeer(data.from);
+      break;
+  }
+}
+
+function applyRemoteChange(change) {
+  if (change.version <= state.document.version) return; // Old change, ignore
+
+  state.isRemoteChange = true;
+
+  change.changes.forEach(c => {
+    state.editor.executeEdits('remote', [{
+      range: new monaco.Range(
+        c.range.startLineNumber,
+        c.range.startColumn,
+        c.range.endLineNumber,
+        c.range.endColumn
+      ),
+      text: c.text
+    }]);
+  });
+
+  state.document.version = change.version;
+  state.isRemoteChange = false;
+}
+
+// ============================================
+// BROADCASTING
+// ============================================
+
+function broadcastChange(change) {
+  const message = { type: 'change', change };
+  state.connections.forEach((user) => {
+    user.connection.send(message);
+  });
+}
+
+function broadcastCursor(position) {
+  const message = { type: 'cursor', position };
+  state.connections.forEach((user) => {
+    user.connection.send(message);
+  });
+}
+
+function broadcastUsername() {
+  const message = { type: 'username', username: state.username };
+  state.connections.forEach((user) => {
+    user.connection.send(message);
+  });
+}
+
+// ============================================
+// UI CONTROLS
+// ============================================
+
+function updateConnectionStatus(connected, text = null) {
+  const dot = document.getElementById('connection-dot');
+  const status = document.getElementById('connection-status');
+
+  if (connected) {
+    dot.className = 'dot online';
+    status.textContent = text || 'Connected';
+  } else {
+    dot.className = 'dot offline';
+    status.textContent = text || 'Disconnected';
+  }
+}
+
+function updateUserList() {
+  const list = document.getElementById('user-list');
+  const count = document.getElementById('user-count');
+
+  // Add ourselves
+  let html = `
+    <div class="user-item is-you">
+      <div class="cursor" style="background:${getColor(state.peerId || 'local')}"></div>
+      <span class="name">${state.username} (You)</span>
+    </div>
+  `;
+
+  // Add connected users
+  state.connections.forEach((user, peerId) => {
+    html += `
+      <div class="user-item">
+        <div class="cursor" style="background:${user.color}"></div>
+        <span class="name">${user.username}</span>
+      </div>
+    `;
+  });
+
+  list.innerHTML = html;
+  count.textContent = state.connections.size + 1;
+}
+
+// Username
+document.getElementById('set-username-btn').addEventListener('click', () => {
+  const input = document.getElementById('username-input');
+  const username = input.value.trim();
+  if (username) {
+    state.username = username;
+    broadcastUsername();
+    updateUserList();
+  }
+});
+
+// Connect to P2P network
+document.getElementById('connect-btn').addEventListener('click', () => {
+  if (!state.peer) {
+    initializePeer();
+    document.getElementById('connect-btn').textContent = 'Connecting...';
+    document.getElementById('connect-btn').disabled = true;
+  }
+});
+
+// Create new room
+document.getElementById('create-room-btn').addEventListener('click', () => {
+  if (state.peer && state.peerId) {
+    state.room = state.peerId;
+    state.isHost = true;
+    document.getElementById('room-code').textContent = `Room ID: ${state.peerId}`;
+    document.getElementById('room-id').textContent = state.room.substring(0, 8) + '...';
+  }
+});
+
+// Join room by ID
+document.getElementById('join-room-btn').addEventListener('click', () => {
+  const roomId = document.getElementById('room-input').value.trim();
+  if (roomId && state.peer) {
+    connectToPeer(roomId);
+    state.room = roomId;
+    document.getElementById('room-id').textContent = roomId.substring(0, 8) + '...';
+  }
+});
+
+// Enable create room button when peer is ready
+let checkPeerReady = setInterval(() => {
+  if (state.peer && state.peerId) {
+    document.getElementById('create-room-btn').disabled = false;
+    document.getElementById('connect-btn').textContent = 'Connected to P2P Network';
+    clearInterval(checkPeerReady);
+    checkPeerReady = null;
+  }
+}, 100);
+
+function destroyPeerOnly() {
+  if (checkPeerReady) {
+    clearInterval(checkPeerReady);
+    checkPeerReady = null;
+  }
+  state.connections.forEach((user) => {
+    try { user.connection?.close?.(); } catch (error) {}
+  });
+  state.connections.clear();
+  updateUserList();
+  if (state.peer) {
+    try { state.peer.destroy(); } catch (error) {}
+    state.peer = null;
+  }
+  state.peerId = null;
+  document.getElementById('create-room-btn').disabled = true;
+}
+
+// ============================================
+// INITIALIZE
+// ============================================
+
+// Auto-connect on load for convenience
+setTimeout(() => {
+  if (!state.peer) {
+    initializePeer();
+  }
+}, 500);
+
+// Handle page unload
+window.addEventListener('pagehide', destroyPeerOnly);
+window.addEventListener('beforeunload', destroyPeerOnly);
+</script>
+
+</body>
+</html>

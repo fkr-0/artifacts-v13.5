@@ -1,0 +1,1531 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>NEXUS v10 Enhanced Portal</title>
+  <script src="https://cdn.jsdelivr.net/npm/peerjs@1.5.2/dist/peerjs.min.js"></script>
+  <script src="../lib/ui/floating-panels.js"></script>
+  <script src="../lib/storage/local-storage-manager.js"></script>
+  <script src="../lib/secret-storage/secret-storage.js"></script>
+  <script src="../lib/ui/spaceship-ui.js"></script>
+  <link rel="stylesheet" href="../lib/artifact-motion/artifact-motion.css">
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+  <style>
+    /* Spaceship UI Base Styles */
+    :root {
+      --bg-primary: #0a0a12;
+      --bg-secondary: #12121f;
+      --fg-primary: #00ffff;
+      --fg-secondary: #0088ff;
+      --accent: #ff0066;
+      --accent-secondary: #ff0080;
+      --glow-primary: rgba(0,255,255,0.5);
+      --glow-secondary: rgba(0,136,255,0.4);
+      --grid-color: rgba(0,255,255,0.08);
+    }
+
+    [data-theme='synthwave'] {
+      --bg-primary: #1a0a2e; --bg-secondary: #2d1b4e;
+      --fg-primary: #ff00ff; --fg-secondary: #00ffff;
+      --accent: #ff6ec7; --accent-secondary: #ffaa00;
+      --glow-primary: rgba(255,0,255,0.6); --glow-secondary: rgba(255,170,0,0.5);
+      --grid-color: rgba(255,0,255,0.12);
+    }
+    [data-theme='cyberpunk'] {
+      --bg-primary: #0d0d0d; --bg-secondary: #1a1a1a;
+      --fg-primary: #f0e68c; --fg-secondary: #ff0080;
+      --accent: #00ff41; --accent-secondary: #ff073a;
+      --glow-primary: rgba(240,230,140,0.6); --glow-secondary: rgba(255,0,128,0.5);
+      --grid-color: rgba(240,230,140,0.06);
+    }
+    [data-theme='retro8bit'] {
+      --bg-primary: #0f0f0f; --bg-secondary: #1a1a0a;
+      --fg-primary: #33ff00; --fg-secondary: #ffb000;
+      --accent: #00ff88; --accent-secondary: #ff4444;
+      --glow-primary: rgba(51,255,0,0.5); --glow-secondary: rgba(255,176,0,0.5);
+      --grid-color: rgba(51,255,0,0.1);
+    }
+    [data-theme='midnight'] {
+      --bg-primary: #0a1628; --bg-secondary: #0f2140;
+      --fg-primary: #87ceeb; --fg-secondary: #c0c0c0;
+      --accent: #4169e1; --accent-secondary: #ffd700;
+      --glow-primary: rgba(135,206,235,0.5); --glow-secondary: rgba(192,192,192,0.4);
+      --grid-color: rgba(135,206,235,0.08);
+    }
+    [data-theme='vaporwave'] {
+      --bg-primary: #1a0a20; --bg-secondary: #2d1536;
+      --fg-primary: #ff71ce; --fg-secondary: #01cdfe;
+      --accent: #b967ff; --accent-secondary: #05ffa1;
+      --glow-primary: rgba(255,113,206,0.5); --glow-secondary: rgba(1,205,254,0.5);
+      --grid-color: rgba(185,103,255,0.1);
+    }
+    [data-theme='neon-rust'] {
+      --bg-primary: #0e0a04; --bg-secondary: #1c1408;
+      --fg-primary: #ff8c00; --fg-secondary: #ff4500;
+      --accent: #ffd700; --accent-secondary: #ff6347;
+      --glow-primary: rgba(255,140,0,0.6); --glow-secondary: rgba(255,69,0,0.5);
+      --grid-color: rgba(255,140,0,0.08);
+    }
+    [data-theme='matrix'] {
+      --bg-primary: #000300; --bg-secondary: #001200;
+      --fg-primary: #00ff41; --fg-secondary: #008f11;
+      --accent: #00ff41; --accent-secondary: #39ff14;
+      --glow-primary: rgba(0,255,65,0.6); --glow-secondary: rgba(0,143,17,0.5);
+      --grid-color: rgba(0,255,65,0.06);
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: radial-gradient(circle at 20% 10%, var(--glow-primary), transparent 30%),
+                  radial-gradient(circle at 90% 30%, var(--glow-secondary), transparent 28%),
+                  var(--bg-primary);
+      color: var(--fg-primary);
+      font: 14px/1.45 'Share Tech Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      overflow: hidden;
+      transition: background 0.4s ease, color 0.3s ease;
+    }
+
+    .shell {
+      display: grid;
+      grid-template-columns: 280px 1fr;
+      grid-template-rows: auto 1fr;
+      height: 100vh;
+    }
+
+    .top {
+      grid-column: 1/-1;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      padding: 0.85rem 1rem;
+      border-bottom: 1px solid var(--grid-color);
+      background: rgba(0,0,0,0.32);
+      backdrop-filter: blur(10px);
+    }
+
+    h1 {
+      margin: 0;
+      font-family: 'Orbitron', sans-serif;
+      font-size: 1.05rem;
+      letter-spacing: 0.16em;
+      color: var(--fg-primary);
+      text-transform: uppercase;
+      text-shadow: 0 0 10px var(--glow-primary);
+    }
+
+    .pill {
+      border: 1px solid var(--grid-color);
+      border-radius: 999px;
+      padding: 0.2rem 0.55rem;
+      color: var(--fg-secondary);
+      font-size: 0.78rem;
+    }
+    .pill.ok {
+      color: var(--accent);
+      border-color: var(--accent);
+      box-shadow: 0 0 8px var(--glow-primary);
+    }
+    .pill.warn {
+      color: var(--accent-secondary);
+    }
+
+    aside {
+      border-right: 1px solid var(--grid-color);
+      background: rgba(0,0,0,0.24);
+      padding: 1rem;
+      overflow: auto;
+    }
+
+    .main {
+      padding: 1rem;
+      overflow: auto;
+      transition: padding-bottom 0.3s ease;
+    }
+
+    /* Add bottom padding when dock is visible */
+    body:has(.floating-panels-dock.visible) .main {
+      padding-bottom: 420px;
+    }
+
+    .card {
+      background: var(--bg-secondary);
+      border: 1px solid var(--grid-color);
+      border-radius: 14px;
+      box-shadow: 0 0 24px var(--glow-primary);
+      padding: 1rem;
+      margin-bottom: 1rem;
+    }
+
+    button, input, textarea, select {
+      font: inherit;
+      font-family: 'Share Tech Mono', monospace;
+    }
+
+    button {
+      background: rgba(0,255,255,0.1);
+      border: 1px solid var(--grid-color);
+      color: var(--fg-primary);
+      border-radius: 9px;
+      padding: 0.48rem 0.7rem;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    button:hover {
+      border-color: var(--fg-primary);
+      box-shadow: 0 0 14px var(--glow-primary);
+    }
+    button.active {
+      background: var(--fg-primary);
+      color: var(--bg-primary);
+    }
+
+    input, textarea {
+      width: 100%;
+      background: rgba(0,0,0,0.36);
+      border: 1px solid var(--grid-color);
+      color: var(--fg-primary);
+      border-radius: 10px;
+      padding: 0.65rem;
+      outline: none;
+    }
+    textarea {
+      min-height: 42vh;
+      resize: vertical;
+    }
+
+    .row {
+      display: flex;
+      gap: 0.5rem;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .stack {
+      display: grid;
+      gap: 0.75rem;
+    }
+
+    .muted {
+      color: var(--fg-secondary);
+    }
+
+    .small {
+      font-size: 0.82rem;
+    }
+
+    .apps button {
+      display: block;
+      width: 100%;
+      text-align: left;
+      margin: 0.35rem 0;
+    }
+
+    .peers {
+      display: grid;
+      gap: 0.35rem;
+    }
+
+    .peer {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      color: var(--fg-secondary);
+    }
+
+    .dot {
+      width: 0.75rem;
+      height: 0.75rem;
+      border-radius: 99px;
+      background: var(--fg-primary);
+      box-shadow: 0 0 6px var(--glow-primary);
+    }
+
+    .split {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+    }
+
+    .seq-grid {
+      display: grid;
+      grid-template-columns: repeat(16, 1fr);
+      gap: 0.35rem;
+    }
+
+    .seq-step {
+      aspect-ratio: 1;
+      border-radius: 8px;
+      border: 1px solid var(--grid-color);
+      background: rgba(0,0,0,0.28);
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .seq-step.on {
+      background: var(--fg-primary);
+      box-shadow: 0 0 12px var(--glow-primary);
+    }
+    .seq-step.play {
+      outline: 2px solid var(--accent);
+    }
+
+    .log {
+      max-height: 180px;
+      overflow: auto;
+      font-size: 0.8rem;
+      color: var(--fg-secondary);
+      white-space: pre-wrap;
+    }
+
+    .remote-flash {
+      animation: flash 0.4s ease;
+    }
+    @keyframes flash {
+      from { box-shadow: 0 0 0 2px var(--accent); }
+      to { box-shadow: none; }
+    }
+
+    /* Settings Panel */
+    .settings-backdrop {
+      display: none;
+      position: fixed;
+      inset: 0;
+      z-index: 1400;
+      background: rgba(0,0,0,0.5);
+    }
+    .settings-backdrop.open {
+      display: block;
+    }
+
+    .settings-drawer {
+      position: fixed;
+      top: 0;
+      right: -420px;
+      width: 400px;
+      height: 100vh;
+      background: var(--bg-secondary);
+      border-left: 1px solid var(--fg-primary);
+      z-index: 1500;
+      transition: right 0.3s ease;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      box-shadow: -10px 0 40px rgba(0,0,0,0.6);
+    }
+    .settings-drawer.open {
+      right: 0;
+    }
+
+    .settings-drawer-hdr {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 1rem 1.25rem;
+      border-bottom: 1px solid var(--grid-color);
+      flex-shrink: 0;
+    }
+
+    .settings-drawer-title {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 0.85rem;
+      color: var(--fg-primary);
+      letter-spacing: 0.12em;
+    }
+
+    .settings-close {
+      background: none;
+      border: 1px solid var(--accent);
+      color: var(--accent);
+      padding: 0.2rem 0.5rem;
+      font-size: 0.8rem;
+      cursor: pointer;
+      border-radius: 3px;
+      line-height: 1;
+    }
+    .settings-close:hover {
+      background: rgba(255,0,102,0.15);
+    }
+
+    .settings-body {
+      padding: 1.25rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+    }
+
+    .settings-sect-title {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 0.65rem;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: var(--accent);
+      margin-bottom: 0.6rem;
+      padding-bottom: 0.4rem;
+      border-bottom: 1px solid var(--grid-color);
+    }
+
+    .theme-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 0.5rem;
+    }
+
+    .theme-btn {
+      aspect-ratio: 1;
+      border-radius: 6px;
+      cursor: pointer;
+      border: 2px solid rgba(255,255,255,0.1);
+      transition: all 0.15s;
+      position: relative;
+      overflow: hidden;
+    }
+    .theme-btn:hover {
+      transform: scale(1.08);
+      border-color: rgba(255,255,255,0.4);
+    }
+    .theme-btn.active {
+      border-color: var(--fg-primary);
+      box-shadow: 0 0 12px var(--glow-primary);
+    }
+
+    .theme-btn-label {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: rgba(0,0,0,0.6);
+      font-size: 0.45rem;
+      font-family: 'Orbitron', sans-serif;
+      text-align: center;
+      padding: 0.15rem 0;
+      color: #fff;
+      letter-spacing: 0.05em;
+    }
+
+    .setting-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0.5rem 0;
+      border-bottom: 1px solid var(--grid-color);
+      font-size: 0.75rem;
+    }
+
+    .toggle-sw {
+      width: 36px;
+      height: 18px;
+      border-radius: 9px;
+      background: var(--bg-primary);
+      border: 1px solid var(--fg-primary);
+      cursor: pointer;
+      position: relative;
+      transition: all 0.2s;
+      flex-shrink: 0;
+    }
+    .toggle-sw::after {
+      content: '';
+      position: absolute;
+      top: 2px;
+      left: 2px;
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: var(--fg-primary);
+      transition: all 0.2s;
+    }
+    .toggle-sw.on {
+      background: var(--accent);
+      border-color: var(--accent);
+    }
+    .toggle-sw.on::after {
+      left: 20px;
+      background: #fff;
+      box-shadow: 0 0 6px var(--accent);
+    }
+
+    .sound-select, .sound-range {
+      width: 120px;
+      background: var(--bg-primary);
+      color: var(--fg-primary);
+      border: 1px solid var(--grid-color);
+      border-radius: 4px;
+      padding: 0.25rem;
+      font-size: 0.7rem;
+    }
+
+    /* Profile Menu */
+    .profile-backdrop {
+      display: none;
+      position: fixed;
+      inset: 0;
+      z-index: 1400;
+      background: rgba(0,0,0,0.5);
+    }
+    .profile-backdrop.open {
+      display: block;
+    }
+
+    .profile-drawer {
+      position: fixed;
+      top: 0;
+      left: -420px;
+      width: 400px;
+      height: 100vh;
+      background: var(--bg-secondary);
+      border-right: 1px solid var(--fg-primary);
+      z-index: 1500;
+      transition: left 0.3s ease;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 10px 0 40px rgba(0,0,0,0.6);
+    }
+    .profile-drawer.open {
+      left: 0;
+    }
+
+    .profile-drawer-hdr {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 1rem 1.25rem;
+      border-bottom: 1px solid var(--grid-color);
+      flex-shrink: 0;
+    }
+
+    .profile-drawer-title {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 0.85rem;
+      color: var(--fg-primary);
+      letter-spacing: 0.12em;
+    }
+
+    .profile-close {
+      background: none;
+      border: 1px solid var(--accent);
+      color: var(--accent);
+      padding: 0.2rem 0.5rem;
+      font-size: 0.8rem;
+      cursor: pointer;
+      border-radius: 3px;
+      line-height: 1;
+    }
+
+    .profile-body {
+      padding: 1.25rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+    }
+
+    .storage-list {
+      max-height: 200px;
+      overflow: auto;
+      font-size: 0.68rem;
+      color: var(--fg-secondary);
+    }
+
+    .storage-row {
+      display: flex;
+      justify-content: space-between;
+      gap: 0.5rem;
+      padding: 0.25rem 0;
+      border-bottom: 1px solid var(--grid-color);
+      cursor: pointer;
+    }
+    .storage-row:hover {
+      color: var(--accent);
+    }
+
+    .mini-btn {
+      border: 1px solid var(--grid-color);
+      background: var(--bg-primary);
+      color: var(--fg-primary);
+      border-radius: 4px;
+      padding: 0.3rem 0.45rem;
+      cursor: pointer;
+      font-size: 0.68rem;
+    }
+    .mini-btn:hover {
+      background: var(--fg-primary);
+      color: var(--bg-primary);
+    }
+
+    /* App tag for peer display */
+    .app-tag {
+      font-size: 0.65rem;
+      padding: 0.1rem 0.3rem;
+      border-radius: 3px;
+      background: var(--bg-primary);
+      border: 1px solid var(--grid-color);
+      color: var(--fg-secondary);
+      margin-left: auto;
+    }
+    .app-tag.shooter {
+      border-color: #f60;
+      color: #f60;
+      box-shadow: 0 0 6px rgba(255,102,0,0.3);
+    }
+
+    /* Context menu */
+    .context-menu {
+      display: none;
+      position: fixed;
+      min-width: 150px;
+      z-index: 10000;
+      background: var(--bg-secondary);
+      border: 1px solid var(--fg-primary);
+      box-shadow: 0 0 20px var(--glow-primary);
+      border-radius: 6px;
+      overflow: hidden;
+    }
+    .context-menu.visible {
+      display: block;
+    }
+    .context-menu-item {
+      padding: 0.55rem 0.7rem;
+      cursor: pointer;
+      display: flex;
+      gap: 0.5rem;
+      align-items: center;
+      font-size: 0.75rem;
+    }
+    .context-menu-item:hover {
+      background: var(--fg-primary);
+      color: var(--bg-primary);
+    }
+    .context-menu-item.hidden {
+      display: none;
+    }
+
+    @media (max-width: 760px) {
+      .shell {
+        grid-template-columns: 1fr;
+      }
+      .top {
+        grid-column: 1;
+      }
+      .main, aside {
+        overflow: visible;
+      }
+      .shell {
+        height: auto;
+        min-height: 100vh;
+      }
+      .split {
+        grid-template-columns: 1fr;
+      }
+      .settings-drawer, .profile-drawer {
+        width: 100%;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation: none !important;
+        transition: none !important;
+        scroll-behavior: auto !important;
+      }
+    }
+</style>
+</head>
+<body>
+  <a href="../app-hub-v11/index.html" style="position:fixed;top:.75rem;right:.75rem;z-index:10000;border:1px solid var(--accent-primary,#00ffff);border-radius:999px;padding:.35rem .65rem;background:rgba(0,0,0,.72);color:var(--accent-primary,#00ffff);text-decoration:none;font:12px ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;box-shadow:0 0 1rem rgba(0,255,255,.18)">↗ v11 hub</a>
+  <div class="shell">
+    <header class="top">
+      <h1>NEXUS v10</h1>
+      <span id="status" class="pill warn">booting</span>
+      <span id="identity" class="pill">anonymous</span>
+      <span class="pill">Enhanced with Spaceship UI</span>
+      <button id="profileBtn" type="button">Profile</button>
+      <button id="settingsBtn" type="button">Settings</button>
+    </header>
+    <aside>
+      <div class="card stack">
+        <strong>Lobby</strong>
+        <label class="small muted">Display name</label>
+        <input id="username" maxlength="32">
+        <div class="row">
+          <button id="connectBtn">Connect</button>
+          <button id="broadcastPresenceBtn">Ping presence</button>
+        </div>
+        <div class="small muted">Lobby ID</div>
+        <code id="lobbyId">v10-app-hub-main</code>
+      </div>
+      <div class="card">
+        <strong>Apps</strong>
+        <div class="apps" id="apps"></div>
+      </div>
+      <div class="card stack">
+        <strong>Peers</strong>
+        <div id="peers" class="peers muted small">none</div>
+      </div>
+    </aside>
+    <main class="main">
+      <div id="view"></div>
+      <div class="card">
+        <strong>Event log</strong>
+        <div id="log" class="log"></div>
+      </div>
+    </main>
+
+    <!-- Floating Panels Dock -->
+    <div id="floating-panels-dock" class="floating-panels-dock">
+      <div class="dock-tabs"></div>
+    </div>
+
+    <!-- Context Menu -->
+    <div class="context-menu" id="contextMenu">
+      <div class="context-menu-item" data-action="join-shooter">
+        <span>🚀</span>
+        <span>Join Shooter Session</span>
+      </div>
+      <div class="context-menu-item" data-action="join-bomberman">
+        <span>💣</span>
+        <span>Join Bomberman Match</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Settings Panel -->
+  <div class="settings-backdrop" id="settingsBackdrop"></div>
+  <div class="settings-drawer" id="settingsDrawer">
+    <div class="settings-drawer-hdr">
+      <span class="settings-drawer-title">SYSTEM SETTINGS</span>
+      <button class="settings-close" id="settingsClose">×</button>
+    </div>
+    <div class="settings-body">
+      <div>
+        <div class="settings-sect-title">THEME</div>
+        <div class="theme-grid">
+          <div class="theme-btn active" data-theme="default" title="NEXUS">
+            <span class="theme-btn-label">NEXUS</span>
+          </div>
+          <div class="theme-btn" data-theme="synthwave" title="Synthwave">
+            <span class="theme-btn-label">Synthwave</span>
+          </div>
+          <div class="theme-btn" data-theme="cyberpunk" title="Cyberpunk">
+            <span class="theme-btn-label">Cyberpunk</span>
+          </div>
+          <div class="theme-btn" data-theme="retro8bit" title="Retro 8-Bit">
+            <span class="theme-btn-label">Retro 8-Bit</span>
+          </div>
+          <div class="theme-btn" data-theme="midnight" title="Midnight">
+            <span class="theme-btn-label">Midnight</span>
+          </div>
+          <div class="theme-btn" data-theme="vaporwave" title="Vaporwave">
+            <span class="theme-btn-label">Vaporwave</span>
+          </div>
+          <div class="theme-btn" data-theme="neon-rust" title="Neon Rust">
+            <span class="theme-btn-label">Neon Rust</span>
+          </div>
+          <div class="theme-btn" data-theme="matrix" title="Matrix">
+            <span class="theme-btn-label">Matrix</span>
+          </div>
+        </div>
+      </div>
+      <div>
+        <div class="settings-sect-title">SOUND</div>
+        <div class="setting-row">
+          <span>Enable UI sounds</span>
+          <div class="toggle-sw on" id="soundToggle"></div>
+        </div>
+        <div class="setting-row">
+          <span>Volume</span>
+          <input type="range" class="sound-range" id="soundVolume" min="0" max="1" step="0.01" value="0.3">
+        </div>
+        <div class="setting-row">
+          <span>Sound theme</span>
+          <select class="sound-select" id="soundTheme">
+            <option value="retro" selected>Retro</option>
+            <option value="soft">Soft</option>
+            <option value="glitch">Glitch</option>
+          </select>
+        </div>
+        <div class="setting-row">
+          <span>Test sound</span>
+          <button class="mini-btn" id="testSoundBtn">Test</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Profile Menu -->
+  <div class="profile-backdrop" id="profileBackdrop"></div>
+  <div class="profile-drawer" id="profileDrawer">
+    <div class="profile-drawer-hdr">
+      <span class="profile-drawer-title">PROFILE</span>
+      <button class="profile-close" id="profileClose">×</button>
+    </div>
+    <div class="profile-body">
+      <div>
+        <div class="settings-sect-title">PERSONAL DATA</div>
+        <div class="stack">
+          <label class="small muted">Username</label>
+          <input id="profileUsername" type="text" maxlength="32">
+          <button class="mini-btn" id="saveProfileBtn">Save Profile</button>
+        </div>
+      </div>
+      <div>
+        <div class="settings-sect-title">LOCAL STORAGE</div>
+        <div class="storage-list" id="storageList">
+          <div class="small muted">Loading...</div>
+        </div>
+        <div class="row" style="margin-top: 0.5rem;">
+          <button class="mini-btn" id="refreshStorageBtn">Refresh</button>
+          <button class="mini-btn" id="clearStorageBtn">Clear All</button>
+          <button class="mini-btn" id="exportStorageBtn">Export</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script type="module">
+    import { PeernetLobby } from '../lib/peernet/peernet-lib.js';
+
+    const LOBBY_ID = 'v10-app-hub-main';
+    const AUTO_CONNECT = true; // Auto-connect on load
+
+    // Sound System
+    let audioContext = null;
+    const soundState = {
+      enabled: true,
+      volume: 0.3,
+      theme: 'retro'
+    };
+
+    function ensureAudioContext() {
+      if (!audioContext) audioContext = new (window.AudioContext || window.webkitAudioContext)();
+      if (audioContext.state === 'suspended') audioContext.resume();
+      return audioContext;
+    }
+
+    function playSound(type = 'click', force = false) {
+      if (!force && !soundState.enabled) return;
+      const ctx = ensureAudioContext();
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+
+      const sets = {
+        retro: { click:[880,'square'], success:[1320,'triangle'], join:[660,'sawtooth'], leave:[220,'sine'], chat:[980,'triangle'], ping:[1500,'square'] },
+        soft: { click:[420,'sine'], success:[720,'triangle'], join:[540,'triangle'], leave:[260,'sine'], chat:[620,'sine'], ping:[840,'triangle'] },
+        glitch: { click:[1200,'square'], success:[2100,'sawtooth'], join:[180,'square'], leave:[90,'sine'], chat:[1660,'square'], ping:[2600,'sawtooth'] }
+      };
+      const def = (sets[soundState.theme] || sets.retro)[type] || sets.retro.click;
+      const now = ctx.currentTime;
+      osc.frequency.value = def[0];
+      osc.type = def[1];
+      gain.gain.setValueAtTime(Math.max(0.001, soundState.volume), now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.12);
+      osc.start(now);
+      osc.stop(now + 0.13);
+    }
+
+    function loadSoundSettings() {
+      try {
+        const saved = JSON.parse(localStorage.getItem('v10-sound') || '{}');
+        soundState.enabled = saved.enabled !== undefined ? saved.enabled : true;
+        soundState.volume = saved.volume ?? 0.3;
+        soundState.theme = saved.theme || 'retro';
+      } catch (e) {}
+    }
+
+    function saveSoundSettings() {
+      localStorage.setItem('v10-sound', JSON.stringify(soundState));
+    }
+
+    // Theme System
+    let currentTheme = 'default';
+
+    function loadThemeSettings() {
+      try {
+        currentTheme = localStorage.getItem('v10-theme') || 'default';
+        setTheme(currentTheme, false);
+      } catch (e) {}
+    }
+
+    function setTheme(themeId, save = true) {
+      currentTheme = themeId;
+      document.body.setAttribute('data-theme', themeId);
+      if (save) {
+        localStorage.setItem('v10-theme', themeId);
+        playSound('success');
+      }
+    }
+
+    // Settings Panel
+    function openSettings() {
+      document.getElementById('settingsBackdrop').classList.add('open');
+      document.getElementById('settingsDrawer').classList.add('open');
+      playSound('click');
+    }
+
+    function closeSettings() {
+      document.getElementById('settingsBackdrop').classList.remove('open');
+      document.getElementById('settingsDrawer').classList.remove('open');
+    }
+
+    // Profile Menu
+    function openProfile() {
+      document.getElementById('profileBackdrop').classList.add('open');
+      document.getElementById('profileDrawer').classList.add('open');
+      loadStorageList();
+      playSound('click');
+    }
+
+    function closeProfile() {
+      document.getElementById('profileBackdrop').classList.remove('open');
+      document.getElementById('profileDrawer').classList.remove('open');
+    }
+
+    function loadStorageList() {
+      const list = document.getElementById('storageList');
+      const items = [];
+
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (key.startsWith('v10-')) {
+          const size = localStorage.getItem(key).length;
+          items.push({ key, size });
+        }
+      }
+
+      if (items.length === 0) {
+        list.innerHTML = '<div class="small muted">No v10 data stored</div>';
+        return;
+      }
+
+      list.innerHTML = items.map(item => `
+        <div class="storage-row" data-key="${item.key}">
+          <span>${item.key}</span>
+          <span>${item.size} bytes</span>
+        </div>
+      `).join('');
+
+      list.querySelectorAll('.storage-row').forEach(row => {
+        row.addEventListener('click', () => {
+          const key = row.dataset.key;
+          if (confirm(`Delete "${key}"?`)) {
+            localStorage.removeItem(key);
+            loadStorageList();
+            playSound('success');
+          }
+        });
+      });
+    }
+
+    // Main State
+    const state = {
+      app: 'notepad',
+      username: localStorage.getItem('v10-username') || `Pilot-${Math.floor(Math.random()*9000+1000)}`,
+      connected: false,
+      suppress: false,
+      lobby: new PeernetLobby(LOBBY_ID, { storageKey: 'v10-peernet', debug: false })
+    };
+
+    const $ = (id) => document.getElementById(id);
+    const html = (s) => String(s ?? '').replace(/[&<>'"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));
+    const log = (...xs) => { const el=$('log'); el.textContent = `[${new Date().toLocaleTimeString()}] ${xs.join(' ')}\n` + el.textContent; };
+
+    const apps = [
+      { id:'notepad', title:'Local-first Notepad', render:renderNotepad },
+      { id:'collab', title:'Shared Text Pad', render:renderCollabPad },
+      { id:'sequencer', title:'Shared Step Sequencer', render:renderSequencer },
+      { id:'shooter', title:'Hyperblast Shooter', render:renderShooter },
+      { id:'bomberman', title:'Gridblast Bomberman', render:renderBomberman },
+      { id:'about', title:'About v10 Enhanced', render:renderAbout }
+    ];
+
+    // Track peer presence (which app they're using)
+    const peerPresence = new Map(); // peerId -> { username, app, color, lastUpdate }
+
+    // Helper function to update dock visibility
+    function updateDockVisibility() {
+      const dock = document.getElementById('floating-panels-dock');
+      const hasDocked = panelManager.dockedPanels.length > 0;
+      dock.classList.toggle('visible', hasDocked);
+      dock.classList.toggle('empty', !hasDocked);
+    }
+
+    // Initialize Floating Panel Manager
+    const panelManager = new FloatingPanelManager({
+      dockContainer: document.getElementById('floating-panels-dock'),
+      onPanelChange: (type, panel) => {
+        log('panel', type, panel.id || panel.title);
+        // Update dock visibility when panels are docked/undocked
+        if (type === 'dock' || type === 'undock' || type === 'close') {
+          updateDockVisibility();
+        }
+      }
+    });
+
+    // Make panel manager available globally for access from apps
+    window.panelManager = panelManager;
+
+    function init() {
+      try {
+        // Load settings
+        loadSoundSettings();
+        loadThemeSettings();
+
+        // Update UI with loaded settings
+        document.querySelectorAll('.theme-btn').forEach(btn => {
+          btn.classList.toggle('active', btn.dataset.theme === currentTheme);
+        });
+        document.getElementById('soundToggle').classList.toggle('on', soundState.enabled);
+        document.getElementById('soundVolume').value = soundState.volume;
+        document.getElementById('soundTheme').value = soundState.theme;
+
+        // Setup username
+        $('username').value = state.username;
+        $('profileUsername').value = state.username;
+
+        // Setup lobby
+        $('lobbyId').textContent = LOBBY_ID;
+        $('connectBtn').onclick = connect;
+        $('broadcastPresenceBtn').onclick = broadcastPresence;
+
+        // Setup header buttons
+        $('settingsBtn').onclick = openSettings;
+        $('profileBtn').onclick = openProfile;
+
+        // Setup settings panel
+        $('settingsBackdrop').onclick = closeSettings;
+        $('settingsClose').onclick = closeSettings;
+
+        document.querySelectorAll('.theme-btn').forEach(btn => {
+          btn.onclick = () => {
+            const theme = btn.dataset.theme;
+            setTheme(theme);
+            document.querySelectorAll('.theme-btn').forEach(b => b.classList.toggle('active', b.dataset.theme === theme));
+          };
+        });
+
+        $('soundToggle').onclick = function() {
+          soundState.enabled = !soundState.enabled;
+          this.classList.toggle('on', soundState.enabled);
+          saveSoundSettings();
+          playSound('success', true);
+        };
+
+        $('soundVolume').oninput = function() {
+          soundState.volume = parseFloat(this.value);
+          saveSoundSettings();
+        };
+
+        $('soundTheme').onchange = function() {
+          soundState.theme = this.value;
+          saveSoundSettings();
+          playSound('success', true);
+        };
+
+        $('testSoundBtn').onclick = () => playSound('click', true);
+
+        // Setup profile menu
+        $('profileBackdrop').onclick = closeProfile;
+        $('profileClose').onclick = closeProfile;
+
+        $('saveProfileBtn').onclick = () => {
+          const newUsername = $('profileUsername').value.trim() || state.username;
+          state.username = newUsername;
+          localStorage.setItem('v10-username', state.username);
+          $('username').value = state.username;
+          updateIdentity();
+          playSound('success');
+          closeProfile();
+        };
+
+        $('refreshStorageBtn').onclick = loadStorageList;
+        $('clearStorageBtn').onclick = () => {
+          if (confirm('Clear all v10 data?')) {
+            const keys = Object.keys(localStorage).filter(k => k.startsWith('v10-'));
+            keys.forEach(k => localStorage.removeItem(k));
+            loadStorageList();
+            playSound('success');
+          }
+        };
+        $('exportStorageBtn').onclick = () => {
+          const data = {};
+          Object.keys(localStorage).filter(k => k.startsWith('v10-')).forEach(k => {
+            data[k] = localStorage.getItem(k);
+          });
+          const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = `v10-backup-${Date.now()}.json`;
+          a.click();
+          URL.revokeObjectURL(url);
+          playSound('success');
+        };
+
+        // Setup username change
+        $('username').onchange = () => {
+          state.username = $('username').value.trim() || state.username;
+          localStorage.setItem('v10-username', state.username);
+          state.lobby.setUsername(state.username);
+          updateIdentity();
+        };
+
+        // Setup apps
+        $('apps').innerHTML = apps.map(a => `<button data-app="${a.id}">${a.title}</button>`).join('');
+        $('apps').onclick = (e) => { const b=e.target.closest('[data-app]'); if(b) openApp(b.dataset.app); };
+
+        // Setup lobby events
+        state.lobby.addEventListener('status', e => { state.connected = !!e.detail.connected; updateStatus(e.detail.text); });
+        state.lobby.addEventListener('peers', e => renderPeers(e.detail));
+        state.lobby.addEventListener('data', e => handleLobbyData(e.detail));
+
+        // Setup context menu
+        setupContextMenu();
+
+        updateIdentity();
+        openApp('notepad');
+
+        // Auto-connect if enabled
+        if (AUTO_CONNECT) {
+          connect();
+        }
+
+        // Enable sound on first interaction
+        document.addEventListener('pointerdown', function initSound() {
+          ensureAudioContext();
+          document.removeEventListener('pointerdown', initSound);
+        }, { once: true });
+
+        // Cleanup stale presence data every 10 seconds
+        setInterval(() => {
+          const now = Date.now();
+          for (const [peerId, data] of peerPresence) {
+            if (now - data.lastUpdate > 30000) {
+              peerPresence.delete(peerId);
+            }
+          }
+          renderPeers();
+        }, 10000);
+
+        log('initialized successfully');
+      } catch (err) {
+        console.error('Init error:', err);
+        log('init error:', err?.message || err);
+        updateStatus('error: ' + (err?.message || 'unknown'));
+      }
+    }
+
+    function setupContextMenu() {
+      const contextMenu = $('contextMenu');
+
+      // Close context menu on click outside
+      document.addEventListener('click', (e) => {
+        if (!e.target.closest('.context-menu')) {
+          contextMenu.classList.remove('visible');
+        }
+      });
+
+      // Handle context menu actions
+      contextMenu.addEventListener('click', (e) => {
+        const item = e.target.closest('.context-menu-item');
+        if (!item) return;
+
+        const action = item.dataset.action;
+        const peerId = contextMenu.dataset.peerId;
+
+        switch (action) {
+          case 'join-shooter':
+            // Create shooter panel in floating mode with multiplayer
+            createShooterPanel({ docked: false, multiplayer: true, targetPeerId: peerId });
+            playSound('success');
+            break;
+          case 'join-bomberman':
+            // Join the peer's Bomberman match through the shared v10 lobby context.
+            createBombermanPanel({ mode: 'floating', multiplayer: true, targetPeerId: peerId });
+            playSound('success');
+            break;
+        }
+
+        contextMenu.classList.remove('visible');
+      });
+    }
+
+    async function connect() {
+      try {
+        updateStatus('connecting');
+        const id = await state.lobby.connect(state.username);
+        log('connected', id);
+        updateIdentity();
+        broadcastPresence();
+        playSound('join');
+      } catch (err) {
+        updateStatus(err?.message || 'connection failed');
+        log('connect failed', err?.message || err);
+      }
+    }
+
+    function updateStatus(text) {
+      const s=$('status');
+      s.textContent = text || (state.connected ? 'connected' : 'offline');
+      s.className = `pill ${state.connected ? 'ok' : 'warn'}`;
+    }
+
+    function updateIdentity() {
+      $('identity').textContent = `${state.username}${state.lobby.myId ? ` · ${state.lobby.myId.slice(0,8)}` : ''}`;
+    }
+
+    function renderPeers(peers) {
+      const entries = [...(peers || new Map()).entries()];
+      $('peers').innerHTML = entries.length ? entries.map(([id,p]) => {
+        const presence = peerPresence.get(id);
+        const appTag = presence && presence.app && presence.app !== 'none' ?
+          `<span class="app-tag ${presence.app === 'shooter' ? 'shooter' : presence.app === 'bomberman' ? 'shooter' : ''}">${getAppTitle(presence.app)}</span>` : '';
+        return `<div class="peer" data-peer-id="${id}">
+          <span class="dot" style="background:${p.color}"></span>
+          <span>${html(p.username)} · ${id.slice(0,8)}</span>
+          ${appTag}
+        </div>`;
+      }).join('') : 'none';
+
+      // Add right-click context menu to peers
+      $('peers').querySelectorAll('.peer').forEach(peerEl => {
+        peerEl.addEventListener('contextmenu', (e) => {
+          e.preventDefault();
+          const peerId = peerEl.dataset.peerId;
+          const presence = peerPresence.get(peerId);
+
+          // Only show join actions for peers currently advertising joinable games.
+          const joinItem = document.querySelector('[data-action="join-shooter"]');
+          if (presence && presence.app === 'shooter') {
+            joinItem.style.display = 'flex';
+          } else {
+            joinItem.style.display = 'none';
+          }
+          const joinBombermanItem = document.querySelector('[data-action="join-bomberman"]');
+          if (presence && presence.app === 'bomberman') {
+            joinBombermanItem.style.display = 'flex';
+          } else {
+            joinBombermanItem.style.display = 'none';
+          }
+
+          const contextMenu = $('contextMenu');
+          contextMenu.dataset.peerId = peerId;
+          contextMenu.style.left = e.pageX + 'px';
+          contextMenu.style.top = e.pageY + 'px';
+          contextMenu.classList.add('visible');
+          playSound('click');
+        });
+      });
+    }
+
+    function getAppTitle(appId) {
+      const app = apps.find(a => a.id === appId);
+      return app ? app.title.replace('Hyperblast ', '').replace('Shared ', '') : appId;
+    }
+
+    function openApp(id) {
+      state.app = id;
+      document.querySelectorAll('[data-app]').forEach(b => b.classList.toggle('active', b.dataset.app === id));
+      const app = apps.find(a => a.id === id) || apps[0];
+      $('view').innerHTML = '';
+      app.render($('view'));
+      log('open', app.title);
+      playSound('click');
+
+      // Broadcast app presence
+      broadcastPresence();
+    }
+
+    function broadcast(type, payload) {
+      state.lobby.broadcast({ type, payload, app: state.app, fromName: state.username, at: Date.now() });
+    }
+
+    function broadcastPresence() {
+      broadcast('app-presence', {
+        username: state.username,
+        app: state.app,
+        color: state.lobby.myColor || '#0cf'
+      });
+    }
+
+    function handleLobbyData({ from, data }) {
+      if (!data || typeof data.type !== 'string') return;
+      log('rx', data.type, 'from', (from || '').slice(0,8));
+
+      // Track peer presence
+      if (data.type === 'app-presence' && data.payload) {
+        peerPresence.set(from, {
+          username: data.payload.username,
+          app: data.payload.app,
+          color: data.payload.color,
+          lastUpdate: Date.now()
+        });
+        renderPeers();
+      }
+
+      window.dispatchEvent(new CustomEvent('v10:lobby-data', { detail: { from, data } }));
+    }
+
+    function renderNotepad(root) {
+      const saved = localStorage.getItem('v10-notepad') || '';
+      root.innerHTML = `<section class="card stack"><div class="row"><strong>Local-first Notepad</strong><span class="pill">localStorage + optional lobby mirror</span></div><textarea id="npArea" placeholder="Personal notes; mirrored to connected peers when online.">${html(saved)}</textarea><div class="row small muted"><span>key: v10-notepad</span><button id="npPush">Push now</button><button id="npPullAsk">Ask peers for note</button></div></section>`;
+      const area = $('npArea');
+      area.addEventListener('input', () => {
+        if (state.suppress) return;
+        localStorage.setItem('v10-notepad', area.value);
+        broadcast('notepad:update', { text: area.value });
+      });
+      $('npPush').onclick = () => { broadcast('notepad:update', { text: area.value }); playSound('ping'); };
+      $('npPullAsk').onclick = () => { broadcast('notepad:request', {}); playSound('ping'); };
+      const listener = (e) => {
+        const { data } = e.detail;
+        if (data.type === 'notepad:update') {
+          const text = data.payload?.text || '';
+          if (area.value !== text) {
+            state.suppress = true; area.value = text; localStorage.setItem('v10-notepad', text); state.suppress = false;
+            area.classList.add('remote-flash'); setTimeout(()=>area.classList.remove('remote-flash'), 450);
+            playSound('chat');
+          }
+        }
+        if (data.type === 'notepad:request') broadcast('notepad:update', { text: area.value });
+      };
+      window.addEventListener('v10:lobby-data', listener, { signal: appAbortSignal(root) });
+    }
+
+    function renderCollabPad(root) {
+      const docId = new URLSearchParams(location.search).get('doc') || 'main';
+      const key = `v10-collab:${docId}`;
+      const saved = localStorage.getItem(key) || '';
+      root.innerHTML = `<section class="card stack"><div class="row"><strong>Shared Text Pad</strong><span class="pill">PeernetLobby LWW</span><span class="pill">doc:${html(docId)}</span></div><textarea id="cpArea" placeholder="Shared lightweight pad. Last write wins; use for quick lobby notes, not source code.">${html(saved)}</textarea><div class="row small muted"><button id="cpPush">Push</button><button id="cpRequest">Request latest</button><span id="cpMeta">idle</span></div></section>`;
+      const area = $('cpArea');
+      let version = Number(localStorage.getItem(`${key}:version`) || 0);
+      const send = () => { version += 1; localStorage.setItem(`${key}:version`, String(version)); localStorage.setItem(key, area.value); broadcast('collab:update', { docId, text: area.value, version }); $('cpMeta').textContent = `sent v${version}`; };
+      area.addEventListener('input', () => { if (!state.suppress) send(); });
+      $('cpPush').onclick = () => { send(); playSound('ping'); };
+      $('cpRequest').onclick = () => { broadcast('collab:request', { docId }); playSound('ping'); };
+      const listener = (e) => {
+        const { data } = e.detail;
+        if (data.type === 'collab:request' && data.payload?.docId === docId) send();
+        if (data.type !== 'collab:update' || data.payload?.docId !== docId) return;
+        const remoteVersion = Number(data.payload.version || 0);
+        if (remoteVersion < version) return;
+        const text = data.payload.text || '';
+        if (area.value !== text) {
+          state.suppress = true; area.value = text; localStorage.setItem(key, text); version = remoteVersion; state.suppress = false;
+          area.classList.add('remote-flash'); setTimeout(()=>area.classList.remove('remote-flash'), 450);
+          $('cpMeta').textContent = `received v${version}`;
+          playSound('chat');
+        }
+      };
+      window.addEventListener('v10:lobby-data', listener, { signal: appAbortSignal(root) });
+    }
+
+    function renderSequencer(root) {
+      const key = 'v10-sequencer';
+      let pattern = JSON.parse(localStorage.getItem(key) || '[]');
+      if (!Array.isArray(pattern) || pattern.length !== 16) pattern = Array(16).fill(false);
+      let playing = false;
+      let step = 0;
+      let interval = null;
+
+      root.innerHTML = `<section class="card stack"><div class="row"><strong>Shared Step Sequencer</strong><span class="pill">16-step pattern</span></div><div class="seq-grid" id="seqGrid"></div><div class="row" style="margin-top:0.5rem"><button id="seqPlay">Play</button><button id="seqClear">Clear</button><span id="seqStatus" class="small muted">stopped</span></div></section>`;
+
+      const render = () => {
+        $('seqGrid').innerHTML = pattern.map((on, i) => `<div class="seq-step ${on ? 'on' : ''} ${i === step && playing ? 'play' : ''}" data-step="${i}"></div>`).join('');
+        $('seqGrid').querySelectorAll('.seq-step').forEach(el => {
+          el.onclick = () => { pattern[el.dataset.step] = !pattern[el.dataset.step]; localStorage.setItem(key, JSON.stringify(pattern)); render(); broadcast('seq:update', { pattern }); playSound('click'); };
+        });
+      };
+
+      const tick = () => {
+        $('seqGrid').querySelector('.seq-step[data-step="'+step+'"]')?.classList.remove('play');
+        step = (step + 1) % 16;
+        $('seqGrid').querySelector('.seq-step[data-step="'+step+'"]')?.classList.add('play');
+        if (pattern[step]) playSound('click');
+        broadcast('seq:tick', { step });
+      };
+
+      $('seqPlay').onclick = () => {
+        playing = !playing;
+        $('seqPlay').textContent = playing ? 'Stop' : 'Play';
+        $('seqStatus').textContent = playing ? 'playing' : 'stopped';
+        if (playing) { interval = setInterval(tick, 150); broadcast('seq:start', {}); }
+        else { clearInterval(interval); broadcast('seq:stop', {}); }
+        playSound('success');
+      };
+
+      $('seqClear').onclick = () => { pattern = Array(16).fill(false); localStorage.setItem(key, JSON.stringify(pattern)); render(); broadcast('seq:update', { pattern }); playSound('click'); };
+
+      const listener = (e) => {
+        const { data } = e.detail;
+        if (data.type === 'seq:update') { pattern = data.payload.pattern; render(); }
+        if (data.type === 'seq:start') { if (!playing) $('seqPlay').click(); }
+        if (data.type === 'seq:stop') { if (playing) $('seqPlay').click(); }
+        if (data.type === 'seq:tick') { step = data.payload.step; render(); }
+      };
+      window.addEventListener('v10:lobby-data', listener, { signal: appAbortSignal(root) });
+
+      render();
+    }
+
+    function renderShooter(root) {
+      root.innerHTML = `<section class="card stack">
+        <div class="row">
+          <strong>Hyperblast Shooter</strong>
+          <span class="pill">Multiplayer Space Shooter</span>
+        </div>
+        <p class="small muted">Classic space shooter with optional multiplayer. Runs inline by default.</p>
+        <div class="row">
+          <button id="shooterPlayBtn" class="mini-btn" style="padding: 0.5rem 1rem;">▶ Play Inline</button>
+          <button id="shooterFloatBtn" class="mini-btn" style="padding: 0.5rem 1rem;">🪟 Floating Panel</button>
+          <button id="shooterMultiBtn" class="mini-btn" style="padding: 0.5rem 1rem;">🌐 Multiplayer</button>
+        </div>
+        <div class="small muted" style="margin-top: 0.5rem;">
+          Controls: WASD/Arrows to move, Space to shoot
+        </div>
+      </section>`;
+
+      $('shooterPlayBtn').onclick = () => {
+        // Run inline in docked panel
+        createShooterPanel({ docked: true, multiplayer: false });
+        playSound('success');
+      };
+
+      $('shooterFloatBtn').onclick = () => {
+        // Run in floating panel
+        createShooterPanel({ docked: false, multiplayer: false });
+        playSound('success');
+      };
+
+      $('shooterMultiBtn').onclick = () => {
+        // Run in floating panel with multiplayer
+        createShooterPanel({ docked: false, multiplayer: true });
+        playSound('success');
+      };
+    }
+
+    function createShooterPanel(opts = {}) {
+      const docked = opts.docked !== false;
+      const multiplayer = opts.multiplayer || false;
+
+      // Create iframe for shooter
+      const url = new URL('shooter.html', window.location.href);
+      url.searchParams.set('embedded', 'true');
+      url.searchParams.set('username', state.username);
+      if (opts.targetPeerId) url.searchParams.set('targetPeerId', opts.targetPeerId);
+      if (multiplayer) {
+        url.searchParams.set('multiplayer', 'true');
+      }
+
+      const iframe = document.createElement('iframe');
+      iframe.src = url.toString();
+      iframe.style.width = '100%';
+      iframe.style.height = '100%';
+      iframe.style.border = 'none';
+      iframe.style.borderRadius = '4px';
+
+      // Create panel
+      const panelId = panelManager.create({
+        id: 'shooter-' + Date.now(),
+        title: multiplayer ? '🌐 Hyperblast Shooter' : '🚀 Hyperblast Shooter',
+        content: '',
+        width: 800,
+        height: 600,
+        docked: docked
+      });
+
+      const panel = panelManager.getPanel(panelId);
+      panel.element.querySelector('.floating-panel-content').appendChild(iframe);
+
+      // Show dock container if we have docked panels
+      updateDockVisibility();
+    }
+
+
+    function renderBomberman(root) {
+      root.innerHTML = `<section class="card stack">
+        <div class="row">
+          <strong>Gridblast Bomberman</strong>
+          <span class="pill">2–4 player one-session multiplayer</span>
+        </div>
+        <p class="small muted">Classic square-grid Bomberman using the v10 lobby presence flow. Launch inline, floating, fullscreen, or a new window/tab.</p>
+        <div class="row">
+          <button id="bombermanInlineBtn" class="mini-btn" style="padding: 0.5rem 1rem;">▶ Inline</button>
+          <button id="bombermanFloatBtn" class="mini-btn" style="padding: 0.5rem 1rem;">🪟 Floating</button>
+          <button id="bombermanFullscreenBtn" class="mini-btn" style="padding: 0.5rem 1rem;">⛶ Fullscreen</button>
+          <button id="bombermanTabBtn" class="mini-btn" style="padding: 0.5rem 1rem;">↗ New Tab</button>
+        </div>
+        <div class="small muted" style="margin-top: 0.5rem;">
+          P1 WASD+Space · P2 Arrows+Enter · P3 IJKL+U · P4 Numpad 8/4/5/6+0
+        </div>
+      </section>`;
+
+      $('bombermanInlineBtn').onclick = () => { createBombermanPanel({ mode: 'inline', multiplayer: true }); playSound('success'); };
+      $('bombermanFloatBtn').onclick = () => { createBombermanPanel({ mode: 'floating', multiplayer: true }); playSound('success'); };
+      $('bombermanFullscreenBtn').onclick = () => { createBombermanPanel({ mode: 'fullscreen', multiplayer: true }); playSound('success'); };
+      $('bombermanTabBtn').onclick = () => { createBombermanPanel({ mode: 'tab', multiplayer: true }); playSound('success'); };
+    }
+
+    function createBombermanUrl(opts = {}) {
+      const url = new URL('bomberman.html', window.location.href);
+      url.searchParams.set('embedded', opts.mode === 'inline' || opts.mode === 'floating' || opts.mode === 'fullscreen' ? 'true' : 'false');
+      url.searchParams.set('username', state.username);
+      url.searchParams.set('v10', 'true');
+      if (opts.multiplayer) url.searchParams.set('multiplayer', 'true');
+      if (opts.targetPeerId) url.searchParams.set('targetPeerId', opts.targetPeerId);
+      return url;
+    }
+
+    function createBombermanPanel(opts = {}) {
+      const mode = opts.mode || 'floating';
+      const url = createBombermanUrl(opts);
+
+      if (mode === 'tab') {
+        window.open(url.toString(), '_blank', 'noopener,noreferrer');
+        return;
+      }
+
+      const iframe = document.createElement('iframe');
+      iframe.src = url.toString();
+      iframe.style.width = '100%';
+      iframe.style.height = '100%';
+      iframe.style.border = 'none';
+      iframe.style.borderRadius = '4px';
+
+      const panelId = panelManager.create({
+        id: 'bomberman-' + Date.now(),
+        title: opts.targetPeerId ? '💣 Joined Bomberman' : '💣 Gridblast Bomberman',
+        content: '',
+        width: mode === 'fullscreen' ? Math.min(window.innerWidth - 80, 1100) : 860,
+        height: mode === 'fullscreen' ? Math.min(window.innerHeight - 80, 820) : 680,
+        docked: mode === 'inline'
+      });
+
+      const panel = panelManager.getPanel(panelId);
+      panel.element.querySelector('.floating-panel-content').appendChild(iframe);
+      if (mode === 'fullscreen') {
+        panel.element.style.left = '24px';
+        panel.element.style.top = '24px';
+        panel.element.style.width = 'calc(100vw - 48px)';
+        panel.element.style.height = 'calc(100vh - 48px)';
+      }
+      updateDockVisibility();
+    }
+
+    function renderAbout(root) {
+      root.innerHTML = `<section class="card stack"><div class="row"><strong>About NEXUS v10 Enhanced</strong></div><p class="small">This enhanced version includes:</p><ul class="small" style="margin:0;padding-left:1rem"><li>8 cyberpunk themes with smooth transitions</li><li>Sound effects system with 3 themes</li><li>Settings panel with customization</li><li>Profile menu with storage management</li><li>Multiplayer shooter with peer tracking</li><li>Right-click to join shooter sessions</li><li>Floating panels with resize & dock support</li><li>Run apps inline (docked) or in floating windows</li><li>Export/import functionality</li><li>Clean spaceship UI aesthetic</li></ul><p class="small muted" style="margin-top:1rem">Built with the new Spaceship UI library, Floating Panels API, and modular storage system.</p></section>`;
+    }
+
+    function appAbortSignal(root) {
+      const ac = new AbortController();
+      new MutationObserver((mutations, obs) => {
+        if (!document.contains(root)) { ac.abort(); obs.disconnect(); }
+      }).observe(document.body, { childList: true, subtree: true });
+      return ac.signal;
+    }
+
+    init();
+  </script>
+</body>
+</html>

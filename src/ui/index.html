@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="color-scheme" content="dark light">
+  <title>Artifacts V13.5</title>
+  <link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+  <a class="skip-link" href="#catalog">Skip to artifacts</a>
+  <header class="masthead">
+    <div>
+      <p class="eyebrow">artifacts.fkr.dev</p>
+      <h1>Artifacts <span>V13.5</span></h1>
+      <p class="lede">Browse the complete portfolio. Search, filter, and open directly. Provenance is available when you want it.</p>
+    </div>
+    <div class="summary" aria-live="polite">
+      <strong id="visible-count">0</strong>
+      <span>shown</span>
+      <span aria-hidden="true">/</span>
+      <strong id="total-count">0</strong>
+      <span>artifacts</span>
+    </div>
+  </header>
+
+  <main>
+    <section class="controls" aria-label="Artifact filters">
+      <label class="search">
+        <span>Search</span>
+        <input id="search" type="search" autocomplete="off" placeholder="Meme Lab, graphics, game…">
+      </label>
+      <label>
+        <span>Kind</span>
+        <select id="kind-filter"><option value="">All kinds</option></select>
+      </label>
+      <label>
+        <span>Availability</span>
+        <select id="availability-filter"><option value="">All states</option></select>
+      </label>
+      <label class="favorite-toggle">
+        <input id="favorites-only" type="checkbox">
+        <span>Favorites only</span>
+      </label>
+      <button id="clear-filters" type="button">Clear</button>
+    </section>
+
+    <p id="status" class="status" role="status" aria-live="polite"></p>
+    <section id="catalog" class="catalog" aria-label="Artifacts" tabindex="-1"></section>
+    <section id="empty" class="empty" hidden>
+      <h2>No artifacts match</h2>
+      <p>Try clearing filters or using a broader search.</p>
+    </section>
+  </main>
+
+  <template id="artifact-card">
+    <article class="artifact-card">
+      <div class="card-heading">
+        <div>
+          <p class="meta-line"><span class="kind"></span><span class="availability"></span></p>
+          <h2></h2>
+        </div>
+        <button class="favorite" type="button" aria-pressed="false" title="Add to Favorites">
+          <span aria-hidden="true">☆</span><span class="sr-only">Favorite</span>
+        </button>
+      </div>
+      <p class="description"></p>
+      <div class="tags" aria-label="Tags"></div>
+      <div class="actions">
+        <a class="open" href="#">Open</a>
+        <details>
+          <summary>Details</summary>
+          <dl class="facts"></dl>
+        </details>
+      </div>
+    </article>
+  </template>
+
+  <script type="module" src="./app.js"></script>
+</body>
+</html>
