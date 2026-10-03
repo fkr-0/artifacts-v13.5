@@ -18,7 +18,7 @@ A release candidate is qualified only when all of these hold:
 The current source authority is the Artifact Lab repository:
 
 - repository: fkr-0/artifact-lab-pages
-- qualification pin: 97c026b77e6dc26ed00e93a74e36d1540be84db1
+- qualification pin: 2318e705b6310ad6b7a903b46d816b17c3e4ee18
 - local development default: ~/work/code/artifacts
 - override: ARTIFACTS_SOURCE_ROOT
 

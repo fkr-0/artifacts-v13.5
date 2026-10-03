@@ -5,7 +5,7 @@ import { join, resolve } from 'node:path';
 export const HANDOFF_SCHEMA = 'artifacts-v13.5/publication-handoff-v1';
 export const CANONICAL_SOURCE = Object.freeze({
   repository: 'fkr-0/artifact-lab-pages',
-  revision: '97c026b77e6dc26ed00e93a74e36d1540be84db1',
+  revision: '2318e705b6310ad6b7a903b46d816b17c3e4ee18',
 });
 export const DEPLOYMENT_OWNER = Object.freeze({
   repository: 'fkr-0/artifact-lab-pages',

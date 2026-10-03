@@ -41,7 +41,7 @@ The Pages upload step should consume the complete V13.5 dist directory only afte
 
 - the intended V13.5 Git commit;
 - canonical source repository fkr-0/artifact-lab-pages;
-- source revision 97c026b77e6dc26ed00e93a74e36d1540be84db1;
+- source revision 2318e705b6310ad6b7a903b46d816b17c3e4ee18;
 - stagedV12Local = 44;
 - missingV12Local = 0;
 - catalogItems = 56;
