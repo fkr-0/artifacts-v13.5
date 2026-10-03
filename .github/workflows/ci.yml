@@ -12,32 +12,43 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout V13.5
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Checkout canonical artifact portfolio
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           repository: fkr-0/artifact-lab-pages
           ref: 97c026b77e6dc26ed00e93a74e36d1540be84db1
           path: .deps/artifacts
-          token: \${{ secrets.ARTIFACT_SOURCE_TOKEN || github.token }}
+          submodules: recursive
+          fetch-depth: 0
+          token: ${{ secrets.ARTIFACT_SOURCE_TOKEN || github.token }}
 
       - name: Set up Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
           node-version: '24'
+
+      - name: Enable Corepack
+        run: corepack enable
+
+      - name: Prepare pinned Revealive release
+        working-directory: .deps/artifacts/revealive
+        run: |
+          pnpm install --frozen-lockfile
+          pnpm run build
 
       - name: Model and contract tests
         run: npm test
 
       - name: Strict release assembly
         env:
-          ARTIFACTS_SOURCE_ROOT: \${{ github.workspace }}/.deps/artifacts
+          ARTIFACTS_SOURCE_ROOT: ${{ github.workspace }}/.deps/artifacts
         run: npm run release:check
 
       - name: Install browser smoke runtime
         run: |
-          npm install --no-save --package-lock=false playwright@1.60.0
+          npm install --no-save --package-lock=false playwright@1.63.0
           npx playwright install --with-deps chromium
 
       - name: Browser smoke

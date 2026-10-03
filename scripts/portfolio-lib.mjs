@@ -1,6 +1,10 @@
+import { execFile } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import { mkdir, readFile, readdir, rm, stat, writeFile } from 'node:fs/promises';
 import { dirname, join, posix, relative, resolve, sep } from 'node:path';
+import { promisify } from 'node:util';
+
+const execFileAsync = promisify(execFile);
 
 export const BASELINE_SCHEMA = 'artifacts-v13.5/baseline-v1';
 export const PARITY_SCHEMA = 'artifacts-v13.5/parity-report-v1';
@@ -153,6 +157,172 @@ async function fileEvidence(path) {
   return { bytes: contents.byteLength, sha256: createHash('sha256').update(contents).digest('hex') };
 }
 
+async function copyBoundedDirectory(sourceRoot, targetRoot, {
+  maxFiles = 2000,
+  maxBytes = 256 * 1024 * 1024,
+} = {}) {
+  const files = await listFiles(sourceRoot);
+  if (files.length > maxFiles) {
+    throw new Error('Compiled artifact exceeds file ceiling: ' + sourceRoot);
+  }
+  let bytes = 0;
+  for (const file of files) {
+    const contents = await readFile(join(sourceRoot, file));
+    bytes += contents.byteLength;
+    if (bytes > maxBytes) {
+      throw new Error('Compiled artifact exceeds byte ceiling: ' + sourceRoot);
+    }
+    const target = join(targetRoot, file);
+    await mkdir(dirname(target), { recursive: true });
+    await writeFile(target, contents);
+  }
+  return { files, bytes };
+}
+
+async function gitHead(path) {
+  const { stdout } = await execFileAsync('git', ['-C', path, 'rev-parse', 'HEAD'], {
+    encoding: 'utf8',
+    maxBuffer: 1024 * 1024,
+  });
+  return stdout.trim();
+}
+
+function makeHubSelfRecord() {
+  return {
+    id: 'app-hub-v13.5',
+    version: '13.5.0',
+    title: 'Artifacts Hub V13.5',
+    description: 'Sanitized V12-style portfolio launcher with V13 integrity evidence and complete release parity.',
+    kind: 'application',
+    status: 'active',
+    required: true,
+    tags: ['hub', 'catalog', 'launcher', 'v13.5'],
+    sourceKind: 'directory',
+    gitMode: 'root',
+    buildMode: 'assemble',
+    releaseKind: 'directory',
+    availability: 'verified',
+    url: '/index.html',
+    launch: { default: 'newWindow', modes: ['newWindow'], sandbox: 'none' },
+    git: { revision: null, changedAt: null, basis: 'release-build', path: 'src/ui' },
+    changedAt: null,
+    receipt: { version: '13.5.0', files: 5, generatedAt: null },
+    deployment: { state: 'staged', routePath: 'index.html', sourceKind: 'v13.5-self' },
+  };
+}
+
+function standardCatalogSummary(items) {
+  return {
+    total: items.length,
+    verified: items.filter((item) => item.availability === 'verified').length,
+    provisional: items.filter((item) => item.availability === 'provisional').length,
+    external: items.filter((item) => item.availability === 'external').length,
+    inline: items.filter((item) => item.availability === 'inline').length,
+    sourceOnly: items.filter((item) => item.availability === 'source-only').length,
+    active: items.filter((item) => item.status === 'active').length,
+    dated: items.filter((item) => item.changedAt).length,
+  };
+}
+
+async function stageCurrentNativeAdditions({
+  baselineItems,
+  nativeCatalog,
+  nativeManifests = {},
+  sourceRoot,
+  outputRoot,
+  strict,
+}) {
+  if (!nativeCatalog || !Array.isArray(nativeCatalog.items)) {
+    return { items: [], routes: [], missing: [] };
+  }
+
+  const baselineIds = new Set(baselineItems.map((item) => item.id));
+  const candidates = nativeCatalog.items.filter(
+    (item) => !baselineIds.has(item.id) && item.id !== 'app-hub-v13',
+  );
+  const items = [];
+  const routes = [];
+  const missing = [];
+
+  for (const item of candidates) {
+    const manifest = nativeManifests[item.id] || null;
+    if (item.buildMode !== 'compile' || !manifest) {
+      missing.push({ id: item.id, reason: 'current-native addition has no supported compile manifest' });
+      items.push({
+        ...item,
+        deployment: { state: 'source-only', routePath: null, sourceKind: 'current-native' },
+      });
+      continue;
+    }
+
+    const sourcePath = join(sourceRoot, manifest.source?.path || item.git?.path || item.id);
+    const expectedRevision = manifest.source?.git?.revision || item.git?.revision || null;
+    if (expectedRevision && manifest.source?.git?.mode === 'submodule') {
+      const actualRevision = await gitHead(sourcePath);
+      if (actualRevision !== expectedRevision) {
+        throw new Error(
+          item.id + ': source revision ' + actualRevision + ' does not match pinned ' + expectedRevision,
+        );
+      }
+    }
+
+    const buildCwd = manifest.build?.cwd || manifest.source?.path || item.id;
+    const buildOutput = manifest.build?.output;
+    const releaseEntrypoint = manifest.release?.entrypoint || 'index.html';
+    const version = manifest.version || item.version || '0.0.0-dev';
+    if (!buildOutput) {
+      missing.push({ id: item.id, reason: 'compile manifest has no build output' });
+      continue;
+    }
+    const compiledRoot = join(sourceRoot, buildCwd, buildOutput);
+    if (!(await exists(join(compiledRoot, releaseEntrypoint)))) {
+      missing.push({ id: item.id, reason: 'compiled release output is missing' });
+      items.push({
+        ...item,
+        deployment: { state: 'missing-compiled-output', routePath: null, sourceKind: 'current-native' },
+      });
+      continue;
+    }
+
+    const releaseRoot = join(outputRoot, 'artifacts', item.id, version);
+    const staged = await copyBoundedDirectory(compiledRoot, releaseRoot);
+    const route = posix.join('artifacts', item.id, version, releaseEntrypoint);
+    const deployed = {
+      ...item,
+      availability: 'verified',
+      url: '/' + route,
+      receipt: {
+        version,
+        files: staged.files.length,
+        generatedAt: null,
+      },
+      deployment: {
+        state: 'staged',
+        routePath: route,
+        sourceKind: 'current-native-compiled',
+        revision: expectedRevision,
+      },
+    };
+    items.push(deployed);
+    routes.push({
+      id: item.id,
+      url: deployed.url,
+      path: route,
+      state: 'staged',
+      classification: 'current-native',
+      sourceKind: 'current-native-compiled',
+    });
+  }
+
+  if (strict && missing.length) {
+    throw new Error(
+      'V13.5 current-native superset failed: ' +
+      missing.map((entry) => entry.id + ' (' + entry.reason + ')').join(', '),
+    );
+  }
+  return { items, routes, missing };
+}
+
 function deploymentRecord(item, state, extra = {}) {
   return {
     id: item.id,
@@ -183,7 +353,7 @@ async function findSourceRoot(roots, path) {
   return null;
 }
 
-export async function assemblePortfolio({ baseline, sourceRoot, fallbackRoots = [], outputRoot, hubRoot = null, strict = true } = {}) {
+export async function assemblePortfolio({ baseline, sourceRoot, fallbackRoots = [], outputRoot, hubRoot = null, nativeCatalog = null, nativeManifests = {}, strict = true } = {}) {
   if (!baseline || baseline.schemaVersion !== BASELINE_SCHEMA || !Array.isArray(baseline.items)) {
     throw new Error('Expected ' + BASELINE_SCHEMA + ' baseline.');
   }
@@ -286,33 +456,73 @@ export async function assemblePortfolio({ baseline, sourceRoot, fallbackRoots = 
     entries,
   };
 
-  const deployedItems = baseline.items.map((item) => {
-    const entry = entries.find((candidate) => candidate.id === item.id);
-    return {
-      ...item,
-      deployment: { state: entry ? entry.state : 'unknown', routePath: entry ? entry.routePath : null },
-    };
+  if (hubRoot) await stageHubUi(resolve(hubRoot), output);
+
+  const nativeAdditions = await stageCurrentNativeAdditions({
+    baselineItems: baseline.items,
+    nativeCatalog,
+    nativeManifests,
+    sourceRoot: source,
+    outputRoot: output,
+    strict,
   });
+
+  const deployedBaselineItems = baseline.items
+    .filter((item) => item.id !== 'app-hub-v12')
+    .map((item) => {
+      const entry = entries.find((candidate) => candidate.id === item.id);
+      return {
+        ...item,
+        deployment: { state: entry ? entry.state : 'unknown', routePath: entry ? entry.routePath : null },
+      };
+    });
+  const selfItem = makeHubSelfRecord();
+  const deployedItems = [...deployedBaselineItems, selfItem, ...nativeAdditions.items];
   const deploymentCatalog = {
     schemaVersion: 'artifacts-v13.5/catalog-v1',
     generatedAt: new Date().toISOString(),
     baseline: baseline.source,
-    summary: parity.summary,
+    summary: {
+      ...standardCatalogSummary(deployedItems),
+      expectedLocal: parity.summary.expectedLocal,
+      stagedExpected: parity.summary.stagedExpected,
+      missingExpected: parity.summary.missingExpected,
+    },
+    superset: {
+      replaces: ['app-hub-v12', 'app-hub-v13'],
+      self: selfItem.id,
+      currentNativeAdded: nativeAdditions.items.map((item) => item.id),
+      currentNativeMissing: nativeAdditions.missing,
+    },
     items: deployedItems,
   };
+
+  parity.superset = deploymentCatalog.superset;
+  parity.summary.finalCatalogItems = deployedItems.length;
 
   await writeFile(join(output, 'catalog.json'), JSON.stringify(deploymentCatalog, null, 2) + '\n');
   await writeFile(join(output, 'parity-report.json'), JSON.stringify(parity, null, 2) + '\n');
 
   const routeManifest = {
     schemaVersion: ROUTE_SCHEMA,
-    entries: entries.map((entry) => ({
-      id: entry.id, url: entry.url, path: entry.routePath, state: entry.state, classification: entry.classification,
-    })),
+    entries: [
+      ...entries
+        .filter((entry) => entry.id !== 'app-hub-v12')
+        .map((entry) => ({
+          id: entry.id, url: entry.url, path: entry.routePath, state: entry.state, classification: entry.classification,
+        })),
+      {
+        id: selfItem.id,
+        url: selfItem.url,
+        path: 'index.html',
+        state: 'staged',
+        classification: 'current-native',
+        sourceKind: 'v13.5-self',
+      },
+      ...nativeAdditions.routes,
+    ],
   };
   await writeFile(join(output, 'route-manifest.json'), JSON.stringify(routeManifest, null, 2) + '\n');
-
-  if (hubRoot) await stageHubUi(resolve(hubRoot), output);
 
   const files = await listFiles(output);
   const manifestFiles = {};
