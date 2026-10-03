@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark">
+  <title>Artifact Lab · App Hub V12</title>
+  <link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+  <header class="site-header">
+    <div class="header-copy">
+      <p class="eyebrow">Artifact Lab · release catalog</p>
+      <h1>App Hub V12</h1>
+      <p id="summary" class="summary" role="status">Loading self-assembled catalog…</p>
+    </div>
+    <dl class="build-meta" aria-label="Hub build information">
+      <div><dt>Version</dt><dd id="portfolio-version">…</dd></div>
+      <div><dt>Catalog built</dt><dd id="build-date">…</dd></div>
+      <div><dt>Order</dt><dd>latest Git change</dd></div>
+    </dl>
+  </header>
+
+  <main>
+    <section class="catalog-tools" aria-label="Catalog search and filters">
+      <label class="search-field" for="search">
+        <span>Search artifacts</span>
+        <input id="search" type="search" autocomplete="off" placeholder="title, tag, description…">
+      </label>
+      <label for="kind-filter">
+        <span>Product</span>
+        <select id="kind-filter"><option value="">All products</option></select>
+      </label>
+      <label for="availability-filter">
+        <span>Availability</span>
+        <select id="availability-filter"><option value="">All states</option></select>
+      </label>
+      <button id="clear-filters" type="button">Clear</button>
+    </section>
+
+    <div id="states" class="states" aria-label="Catalog state counts"></div>
+    <section id="catalog" class="catalog" aria-label="Artifacts" aria-live="polite"></section>
+    <p id="empty" class="empty" hidden>No artifacts match the current filters.</p>
+  </main>
+
+  <footer class="site-footer" id="runtime-footer">
+    <span><strong id="visible-count">0</strong> shown / <strong id="artifact-count">0</strong> artifacts</span>
+    <span>catalog <strong id="generated-at">…</strong></span>
+    <span>UI ready <strong id="load-ms">…</strong></span>
+    <span id="memory-stat">memory n/a</span>
+  </footer>
+
+  <template id="card-template">
+    <article class="artifact-card">
+      <header class="card-header">
+        <div>
+          <p class="card-kicker"><span class="availability"></span><span class="version"></span></p>
+          <h2></h2>
+        </div>
+        <time class="changed"></time>
+      </header>
+      <p class="description"></p>
+      <dl class="facts"></dl>
+      <div class="tags" aria-label="Tags"></div>
+      <div class="actions"></div>
+    </article>
+  </template>
+
+  <script type="module" src="./app.js"></script>
+</body>
+</html>

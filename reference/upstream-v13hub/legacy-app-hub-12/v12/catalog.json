@@ -1,0 +1,2198 @@
+{
+  "schemaVersion": "artifacts.fkr.dev/catalog-v1",
+  "generatedAt": "2026-08-20T10:48:45.673Z",
+  "build": {
+    "portfolioVersion": "1.7.0",
+    "ordering": "git-last-committed-change-desc",
+    "generator": "artifactctl"
+  },
+  "summary": {
+    "total": 55,
+    "verified": 0,
+    "provisional": 44,
+    "external": 1,
+    "inline": 1,
+    "sourceOnly": 9,
+    "active": 2,
+    "dated": 51
+  },
+  "items": [
+    {
+      "id": "ethic-brawl",
+      "version": null,
+      "title": "Ethic Brawl",
+      "description": "Published independent submodule pinned to the parent-owned reachable revision; mixed 1.7 rescue work remains local until browser and release reconciliation is complete.",
+      "kind": "application",
+      "status": "provisional",
+      "required": true,
+      "tags": [
+        "game",
+        "project",
+        "submodule"
+      ],
+      "sourceKind": "project",
+      "gitMode": "submodule",
+      "buildMode": "compile",
+      "releaseKind": "directory",
+      "availability": "provisional",
+      "url": "/ethic-brawl/index.html",
+      "launch": {
+        "default": "inline",
+        "modes": [
+          "inline",
+          "fullscreen",
+          "newWindow"
+        ],
+        "sandbox": "trusted"
+      },
+      "git": {
+        "changedAt": "2026-08-19T22:17:54.000Z",
+        "revision": "e2f2c020d7ebd41945f8c316db75ae0ec64a9485",
+        "basis": "submodule-pin",
+        "path": "ethic-brawl"
+      },
+      "changedAt": "2026-08-19T22:17:54.000Z",
+      "receipt": null
+    },
+    {
+      "id": "badger-sprawl-runner",
+      "version": null,
+      "title": "Badger Sprawl Runner",
+      "description": "Published independent submodule pinned to the parent-owned reachable revision; a fully verified local 1.4.0 integration candidate exists but remains outside the gitlink until published.",
+      "kind": "application",
+      "status": "provisional",
+      "required": true,
+      "tags": [
+        "game",
+        "project",
+        "submodule"
+      ],
+      "sourceKind": "project",
+      "gitMode": "submodule",
+      "buildMode": "compile",
+      "releaseKind": "directory",
+      "availability": "provisional",
+      "url": "/badger-sprawl-runner/dist/index.html",
+      "launch": {
+        "default": "newWindow",
+        "modes": [
+          "fullscreen",
+          "newWindow"
+        ],
+        "sandbox": "trusted"
+      },
+      "git": {
+        "changedAt": "2026-08-19T21:25:46.000Z",
+        "revision": "ccd1c439e706c1397f48ed544a44712ff1d087df",
+        "basis": "submodule-pin",
+        "path": "badger-sprawl-runner"
+      },
+      "changedAt": "2026-08-19T21:25:46.000Z",
+      "receipt": null
+    },
+    {
+      "id": "bathroom-emergency-guide",
+      "version": "4.14.0-alt.2",
+      "title": "Bathroom Emergency Guide",
+      "description": "Root-owned, sourced, print-first decision guide with an accessible static site, master editions, and eleven standalone route books.",
+      "kind": "document",
+      "status": "experimental",
+      "required": false,
+      "tags": [
+        "accessibility",
+        "decision-guide",
+        "document",
+        "offline",
+        "print",
+        "root-owned"
+      ],
+      "sourceKind": "project",
+      "gitMode": "root",
+      "buildMode": "compile",
+      "releaseKind": "directory",
+      "availability": "source-only",
+      "url": null,
+      "launch": {
+        "default": "newWindow",
+        "modes": [
+          "inline",
+          "fullscreen",
+          "newWindow"
+        ],
+        "sandbox": "strict"
+      },
+      "git": {
+        "revision": "7aa3db1021bd4f00f35e86567e7211f690b35ca8",
+        "changedAt": "2026-08-06T14:48:12.000Z",
+        "basis": "source",
+        "path": "bathroom-emergency-guide/bathroom-emergency-guide"
+      },
+      "changedAt": "2026-08-06T14:48:12.000Z",
+      "receipt": null
+    },
+    {
+      "id": "git-recipe-book",
+      "version": "1.1.0",
+      "title": "Git Recipe Book",
+      "description": "Root-owned interactive Git learning application with progressive lessons, an in-browser repository simulator, contextual help, and graph-based workspace views.",
+      "kind": "application",
+      "status": "experimental",
+      "required": false,
+      "tags": [
+        "education",
+        "git",
+        "project",
+        "root-owned",
+        "react"
+      ],
+      "sourceKind": "project",
+      "gitMode": "root",
+      "buildMode": "compile",
+      "releaseKind": "directory",
+      "availability": "source-only",
+      "url": "/git-recipe-book/index.html",
+      "launch": {
+        "default": "inline",
+        "modes": [
+          "inline",
+          "floating",
+          "fullscreen",
+          "newWindow"
+        ],
+        "sandbox": "trusted"
+      },
+      "git": {
+        "revision": "565a86287ed9434aa1a72e8e60669bd06a39b428",
+        "changedAt": "2026-08-06T14:32:00.000Z",
+        "basis": "source",
+        "path": "git-recipe-book"
+      },
+      "changedAt": "2026-08-06T14:32:00.000Z",
+      "receipt": null
+    },
+    {
+      "id": "inf-arrange",
+      "version": "0.0.2",
+      "title": "Inf Arrange / Canvas Studio",
+      "description": "Root-owned infinite canvas application for arranging, slicing, cropping, resizing, annotating, and relating images and short text blocks.",
+      "kind": "application",
+      "status": "experimental",
+      "required": false,
+      "tags": [
+        "canvas",
+        "images",
+        "project",
+        "root-owned",
+        "react"
+      ],
+      "sourceKind": "project",
+      "gitMode": "root",
+      "buildMode": "compile",
+      "releaseKind": "directory",
+      "availability": "source-only",
+      "url": null,
+      "launch": {
+        "default": "inline",
+        "modes": [
+          "inline",
+          "floating",
+          "fullscreen",
+          "newWindow"
+        ],
+        "sandbox": "trusted"
+      },
+      "git": {
+        "revision": "c781a8c92ad6f4811d051564441b80543d5c2387",
+        "changedAt": "2026-08-06T09:33:17.000Z",
+        "basis": "source",
+        "path": "inf-arrange"
+      },
+      "changedAt": "2026-08-06T09:33:17.000Z",
+      "receipt": null
+    },
+    {
+      "id": "file-diff-studio",
+      "version": null,
+      "title": "File Diff Studio",
+      "description": "Local-first visual file comparison and merge workbench with DWIM paste, uploads, live line diffs, keyboard navigation, per-change choices, editable result output, undo/redo, and a portable JSON operation journal.",
+      "kind": "application",
+      "status": "provisional",
+      "required": false,
+      "tags": [
+        "tool",
+        "developer-tools",
+        "diff",
+        "merge",
+        "text",
+        "local-first",
+        "keyboard",
+        "v11"
+      ],
+      "sourceKind": "directory",
+      "gitMode": "root",
+      "buildMode": "none",
+      "releaseKind": "directory",
+      "availability": "provisional",
+      "url": "/file-diff-studio/index.html",
+      "launch": {
+        "default": "inline",
+        "modes": [
+          "inline",
+          "floating",
+          "fullscreen",
+          "newWindow"
+        ],
+        "sandbox": "strict"
+      },
+      "git": {
+        "revision": "6058257c5c846d79852c4cec616eb41662a418d0",
+        "changedAt": "2026-08-02T14:06:40.000Z",
+        "basis": "source",
+        "path": "file-diff-studio"
+      },
+      "changedAt": "2026-08-02T14:06:40.000Z",
+      "receipt": null
+    },
+    {
+      "id": "v10-local-first-notepad",
+      "version": null,
+      "title": "v10 Local-first Notepad",
+      "description": "v10 enhanced portal notepad concept extracted into the v11 utility host with hub-scoped persistence.",
+      "kind": "application",
+      "status": "provisional",
+      "required": false,
+      "tags": [
+        "editor",
+        "notepad",
+        "local-first",
+        "v10"
+      ],
+      "sourceKind": "directory",
+      "gitMode": "root",
+      "buildMode": "none",
+      "releaseKind": "directory",
+      "availability": "provisional",
+      "url": "/legacy-tools.html?tool=v10-notepad",
+      "launch": {
+        "default": "inline",
+        "modes": [
+          "inline",
+          "floating",
+          "newWindow"
+        ],
+        "sandbox": "strict"
+      },
+      "git": {
+        "revision": "6058257c5c846d79852c4cec616eb41662a418d0",
+        "changedAt": "2026-08-02T14:06:40.000Z",
+        "basis": "source",
+        "path": "app-hub-v11"
+      },
+      "changedAt": "2026-08-02T14:06:40.000Z",
+      "receipt": null
+    },
+    {
+      "id": "v10-shared-text-pad",
+      "version": null,
+      "title": "v10 Shared Text Pad",
+      "description": "v10 shared text pad ported to the v11 utility host, using BroadcastChannel for same-browser live sync and local fallback storage.",
+      "kind": "application",
+      "status": "provisional",
+      "required": false,
+      "tags": [
+        "editor",
+        "collaborative",
+        "text",
+        "v10"
+      ],
+      "sourceKind": "directory",
+      "gitMode": "root",
+      "buildMode": "none",
+      "releaseKind": "directory",
+      "availability": "provisional",
+      "url": "/legacy-tools.html?tool=v10-shared-pad",
+      "launch": {
+        "default": "inline",
+        "modes": [
+          "inline",
+          "floating",
+          "newWindow"
+        ],
+        "sandbox": "strict"
+      },
+      "git": {
+        "revision": "6058257c5c846d79852c4cec616eb41662a418d0",
+        "changedAt": "2026-08-02T14:06:40.000Z",
+        "basis": "source",
+        "path": "app-hub-v11"
+      },
+      "changedAt": "2026-08-02T14:06:40.000Z",
+      "receipt": null
+    },
+    {
+      "id": "v4-console-notes",
+      "version": null,
+      "title": "v4 Console Notes",
+      "description": "Operator notes surface for the v4 console lineage, ported into the v11 legacy utility host.",
+      "kind": "application",
+      "status": "provisional",
+      "required": false,
+      "tags": [
+        "editor",
+        "notes",
+        "v4",
+        "console"
+      ],
+      "sourceKind": "directory",
+      "gitMode": "root",
+      "buildMode": "none",
+      "releaseKind": "directory",
+      "availability": "provisional",
+      "url": "/legacy-tools.html?tool=v4-console-notes",
+      "launch": {
+        "default": "inline",
+        "modes": [
+          "inline",
+          "floating",
+          "newWindow"
+        ],
+        "sandbox": "strict"
+      },
+      "git": {
+        "revision": "6058257c5c846d79852c4cec616eb41662a418d0",
+        "changedAt": "2026-08-02T14:06:40.000Z",
+        "basis": "source",
+        "path": "app-hub-v11"
+      },
+      "changedAt": "2026-08-02T14:06:40.000Z",
+      "receipt": null
+    },
+    {
+      "id": "v8-native-scratchpad",
+      "version": null,
+      "title": "v8 Native Scratchpad",
+      "description": "Native textarea-based v8 scratchpad port in the v11 legacy utility host with local-first autosave.",
+      "kind": "application",
+      "status": "provisional",
+      "required": false,
+      "tags": [
+        "editor",
+        "notepad",
+        "native",
+        "v8",
+        "local-first"
+      ],
+      "sourceKind": "directory",
+      "gitMode": "root",
+      "buildMode": "none",
+      "releaseKind": "directory",
+      "availability": "provisional",
+      "url": "/legacy-tools.html?tool=v8-native-scratchpad",
+      "launch": {
+        "default": "inline",
+        "modes": [
+          "inline",
+          "floating",
+          "newWindow"
+        ],
+        "sandbox": "strict"
+      },
+      "git": {
+        "revision": "6058257c5c846d79852c4cec616eb41662a418d0",
+        "changedAt": "2026-08-02T14:06:40.000Z",
+        "basis": "source",
+        "path": "app-hub-v11"
+      },
+      "changedAt": "2026-08-02T14:06:40.000Z",
+      "receipt": null
+    },
+    {
+      "id": "v9-quick-notepad",
+      "version": null,
+      "title": "v9 Quick Notepad",
+      "description": "v9 embedded Quick Notepad ported to the v11 utility host with local-first autosave.",
+      "kind": "application",
+      "status": "provisional",
+      "required": false,
+      "tags": [
+        "editor",
+        "tool",
+        "notepad",
+        "local-first",
+        "v9"
+      ],
+      "sourceKind": "directory",
+      "gitMode": "root",
+      "buildMode": "none",
+      "releaseKind": "directory",
+      "availability": "provisional",
+      "url": "/legacy-tools.html?tool=v9-notepad",
+      "launch": {
+        "default": "inline",
+        "modes": [
+          "inline",
+          "floating",
+          "newWindow"
+        ],
+        "sandbox": "strict"
+      },
+      "git": {
+        "revision": "6058257c5c846d79852c4cec616eb41662a418d0",
+        "changedAt": "2026-08-02T14:06:40.000Z",
+        "basis": "source",
+        "path": "app-hub-v11"
+      },
+      "changedAt": "2026-08-02T14:06:40.000Z",
+      "receipt": null
+    },
+    {
+      "id": "v9-sci-fi-calculator",
+      "version": null,
+      "title": "v9 Sci-Fi Calculator",
+      "description": "Cyberpunk calculator from the v9 embedded utility deck, ported as a standalone v11 tool with history tape.",
+      "kind": "application",
+      "status": "provisional",
+      "required": false,
+      "tags": [
+        "calculator",
+        "math",
+        "tool",
+        "v9"
+      ],
+      "sourceKind": "directory",
+      "gitMode": "root",
+      "buildMode": "none",
+      "releaseKind": "directory",
+      "availability": "provisional",
+      "url": "/legacy-tools.html?tool=v9-calculator",
+      "launch": {
+        "default": "inline",
+        "modes": [
+          "inline",
+          "floating",
+          "newWindow"
+        ],
+        "sandbox": "strict"
+      },
+      "git": {
+        "revision": "6058257c5c846d79852c4cec616eb41662a418d0",
+        "changedAt": "2026-08-02T14:06:40.000Z",
+        "basis": "source",
+        "path": "app-hub-v11"
+      },
+      "changedAt": "2026-08-02T14:06:40.000Z",
+      "receipt": null
+    },
+    {
+      "id": "spc-aether-node",
+      "version": null,
+      "title": "Aether Node",
+      "description": "Abstract node-based visual programming tool for creating generative graphics and procedural patterns. Build networks of processing nodes, connect data flows, and export results as images or animations.",
+      "kind": "application",
+      "status": "provisional",
+      "required": false,
+      "tags": [
+        "tool",
+        "graphics",
+        "generative",
+        "node-based",
+        "visual",
+        "programming",
+        "creative",
+        "v11"
+      ],
+      "sourceKind": "directory",
+      "gitMode": "root",
+      "buildMode": "none",
+      "releaseKind": "directory",
+      "availability": "provisional",
+      "url": "/spc/aether_node.html",
+      "launch": {
+        "default": "inline",
+        "modes": [
+          "inline",
+          "floating",
+          "fullscreen",
+          "newWindow"
+        ],
+        "sandbox": "strict"
+      },
+      "git": {
+        "revision": "92dc10c576ef35b7a87f663ebf45eef1173a00c4",
+        "changedAt": "2026-07-24T01:39:07.000Z",
+        "basis": "source",
+        "path": "spc"
+      },
+      "changedAt": "2026-07-24T01:39:07.000Z",
+      "receipt": null
+    },
+    {
+      "id": "brickbreaker",
+      "version": "0.1.0",
+      "title": "BrickBreaker Coop",
+      "description": "Standalone cooperative brick-breaking arcade game with optional PeerJS multiplayer.",
+      "kind": "application",
+      "status": "experimental",
+      "required": true,
+      "tags": [
+        "game",
+        "arcade",
+        "multiplayer",
+        "p2p"
+      ],
+      "sourceKind": "directory",
+      "gitMode": "root",
+      "buildMode": "none",
+      "releaseKind": "directory",
+      "availability": "source-only",
+      "url": "/brickbreaker/index.html",
+      "launch": {
+        "default": "inline",
+        "modes": [
+          "inline",
+          "fullscreen",
+          "newWindow"
+        ],
+        "sandbox": "trusted"
+      },
+      "git": {
+        "revision": "92dc10c576ef35b7a87f663ebf45eef1173a00c4",
+        "changedAt": "2026-07-24T01:39:07.000Z",
+        "basis": "source",
+        "path": "brickbreaker"
+      },
+      "changedAt": "2026-07-24T01:39:07.000Z",
+      "receipt": null
+    },
+    {
+      "id": "chado-zen-tea",
+      "version": "0.1.0",
+      "title": "Chadō: Interactive Zen Tea Ceremony Guide",
+      "description": "Self-contained interactive guide to chanoyu and chadō.",
+      "kind": "document",
+      "status": "experimental",
+      "required": true,
+      "tags": [
+        "document",
+        "education",
+        "tea",
+        "zen",
+        "interactive"
+      ],
+      "sourceKind": "directory",
+      "gitMode": "root",
+      "buildMode": "none",
+      "releaseKind": "directory",
+      "availability": "source-only",
+      "url": "/chado-zen-tea/index.html",
+      "launch": {
+        "default": "inline",
+        "modes": [
+          "inline",
+          "fullscreen",
+          "newWindow"
+        ],
+        "sandbox": "strict"
+      },
+      "git": {
+        "revision": "92dc10c576ef35b7a87f663ebf45eef1173a00c4",
+        "changedAt": "2026-07-24T01:39:07.000Z",
+        "basis": "source",
+        "path": "chado-zen-tea"
+      },
+      "changedAt": "2026-07-24T01:39:07.000Z",
+      "receipt": null
+    },
+    {
+      "id": "minesweeper",
+      "version": null,
+      "title": "Classic Minesweeper",
+      "description": "Standalone Minesweeper artifact with original presets, custom boards, timer scoring, flags, chording, keyboard controls, and local best times.",
+      "kind": "application",
+      "status": "provisional",
+      "required": false,
+      "tags": [
+        "game",
+        "classic",
+        "minesweeper",
+        "puzzle"
+      ],
+      "sourceKind": "directory",
+      "gitMode": "root",
+      "buildMode": "none",
+      "releaseKind": "directory",
+      "availability": "provisional",
+      "url": "/minesweeper/index.html",
+      "launch": {
+        "default": "inline",
+        "modes": [
+          "inline",
+          "fullscreen",
+          "newWindow"
+        ],
+        "sandbox": "strict"
+      },
+      "git": {
+        "revision": "92dc10c576ef35b7a87f663ebf45eef1173a00c4",
+        "changedAt": "2026-07-24T01:39:07.000Z",
+        "basis": "source",
+        "path": "minesweeper"
+      },
+      "changedAt": "2026-07-24T01:39:07.000Z",
+      "receipt": null
+    },
+    {
+      "id": "solitaire",
+      "version": null,
+      "title": "Classic Solitaire",
+      "description": "Standalone Klondike Solitaire artifact with draw-one/draw-three modes, stock and waste piles, foundations, tableau moves, scoring, undo, auto-foundation, timer, and best score persistence.",
+      "kind": "application",
+      "status": "provisional",
+      "required": false,
+      "tags": [
+        "game",
+        "classic",
+        "solitaire",
+        "cards"
+      ],
+      "sourceKind": "directory",
+      "gitMode": "root",
+      "buildMode": "none",
+      "releaseKind": "directory",
+      "availability": "provisional",
+      "url": "/solitaire/index.html",
+      "launch": {
+        "default": "inline",
+        "modes": [
+          "inline",
+          "fullscreen",
+          "newWindow"
+        ],
+        "sandbox": "strict"
+      },
+      "git": {
+        "revision": "92dc10c576ef35b7a87f663ebf45eef1173a00c4",
+        "changedAt": "2026-07-24T01:39:07.000Z",
+        "basis": "source",
+        "path": "solitaire"
+      },
+      "changedAt": "2026-07-24T01:39:07.000Z",
+      "receipt": null
+    },
+    {
+      "id": "clausewitz-on-war-interactive",
+      "version": null,
+      "title": "Clausewitz: On War Interactive Atlas",
+      "description": "Self-contained interactive atlas for exploring Clausewitz's On War through book trees, chapter compartments, concept maps, friction and culminating-point simulations, scenario sliders, and retrieval prompts.",
+      "kind": "application",
+      "status": "provisional",
+      "required": false,
+      "tags": [
+        "tool",
+        "education",
+        "strategy",
+        "history",
+        "philosophy",
+        "military-theory",
+        "interactive",
+        "visualization",
+        "local-first",
+        "v11"
+      ],
+      "sourceKind": "directory",
+      "gitMode": "root",
+      "buildMode": "none",
+      "releaseKind": "directory",
+      "availability": "provisional",
+      "url": "/clausewitz-on-war-interactive/index.html",
+      "launch": {
+        "default": "inline",
+        "modes": [
+          "inline",
+          "floating",
+          "fullscreen",
+          "newWindow"
+        ],
+        "sandbox": "strict"
+      },
+      "git": {
+        "revision": "92dc10c576ef35b7a87f663ebf45eef1173a00c4",
+        "changedAt": "2026-07-24T01:39:07.000Z",
+        "basis": "source",
+        "path": "clausewitz-on-war-interactive"
+      },
+      "changedAt": "2026-07-24T01:39:07.000Z",
+      "receipt": null
+    },
+    {
+      "id": "club-ledger",
+      "version": null,
+      "title": "Club Ledger",
+      "description": "Client-only trusted club finance ledger for importing JSON, inspecting member dues and wallet balances, logging membership fees, transactions, and wallet-to-wallet conversions, then exporting updated JSON.",
+      "kind": "application",
+      "status": "provisional",
+      "required": false,
+      "tags": [
+        "tool",
+        "finance",
+        "club",
+        "ledger",
+        "accounting",
+        "json",
+        "local-first"
+      ],
+      "sourceKind": "directory",
+      "gitMode": "root",
+      "buildMode": "none",
+      "releaseKind": "directory",
+      "availability": "provisional",
+      "url": "/club-ledger/index.html",
+      "launch": {
+        "default": "inline",
+        "modes": [
+          "inline",
+          "floating",
+          "fullscreen",
+          "newWindow"
+        ],
+        "sandbox": "strict"
+      },
+      "git": {
+        "changedAt": "2026-07-24T01:39:07.000Z",
+        "revision": null,
+        "basis": "legacy",
+        "path": "../club-ledger/index.html"
+      },
+      "changedAt": "2026-07-24T01:39:07.000Z",
+      "receipt": null
+    },
+    {
+      "id": "gif-white-to-transparent",
+      "version": null,
+      "title": "GIF White→Alpha Preprocessor",
+      "description": "Browser-based GIF preprocessor that removes white backgrounds and replaces with transparency. Upload animated GIF, adjust white threshold with live preview, and download cleaned GIF with proper alpha channel.",
+      "kind": "application",
+      "status": "provisional",
+      "required": false,
+      "tags": [
+        "tool",
+        "graphics",
+        "image",
+        "gif",
+        "preprocessor",
+        "transparency",
+        "utility",
+        "v11"
+      ],
+      "sourceKind": "directory",
+      "gitMode": "root",
+      "buildMode": "none",
+      "releaseKind": "directory",
+      "availability": "provisional",
+      "url": "/gif-white-to-transparent/index.html",
+      "launch": {
+        "default": "inline",
+        "modes": [
+          "inline",
+          "floating",
+          "fullscreen",
+          "newWindow"
+        ],
+        "sandbox": "strict"
+      },
+      "git": {
+        "changedAt": "2026-07-24T01:39:07.000Z",
+        "revision": null,
+        "basis": "legacy",
+        "path": "../gif-white-to-transparent/index.html"
+      },
+      "changedAt": "2026-07-24T01:39:07.000Z",
+      "receipt": null
+    },
+    {
+      "id": "bomberman-v10",
+      "version": null,
+      "title": "Gridblast Bomberman",
+      "description": "Legacy v10 Bomberman implementation with PeernetLobby one-session multiplayer, target-peer joins, and shared state snapshots.",
+      "kind": "application",
+      "status": "provisional",
+      "required": false,
+      "tags": [
+        "game",
+        "classic",
+        "bomberman",
+        "multiplayer",
+        "peernet"
+      ],
+      "sourceKind": "directory",
+      "gitMode": "root",
+      "buildMode": "none",
+      "releaseKind": "directory",
+      "availability": "provisional",
+      "url": "/app-hub/bomberman.html",
+      "launch": {
+        "default": "inline",
+        "modes": [
+          "inline",
+          "floating",
+          "fullscreen",
+          "newWindow"
+        ],
+        "sandbox": "strict"
+      },
+      "git": {
+        "revision": "92dc10c576ef35b7a87f663ebf45eef1173a00c4",
+        "changedAt": "2026-07-24T01:39:07.000Z",
+        "basis": "source",
+        "path": "app-hub"
+      },
+      "changedAt": "2026-07-24T01:39:07.000Z",
+      "receipt": null
+    },
+    {
+      "id": "sexy-love-chat",
+      "version": null,
+      "title": "Magical Love Chat",
+      "description": "P2P real-time chat application with magical theme and PeerJS networking. Features private messaging, room creation, user presence, emoji support, and persistent chat history via localStorage.",
+      "kind": "application",
+      "status": "provisional",
+      "required": false,
+      "tags": [
+        "tool",
+        "chat",
+        "p2p",
+        "real-time",
+        "social",
+        "peernet",
+        "collaborative",
+        "v11"
+      ],
+      "sourceKind": "directory",
+      "gitMode": "root",
+      "buildMode": "none",
+      "releaseKind": "directory",
+      "availability": "provisional",
+      "url": "/sexy-love-chat/index.html",
+      "launch": {
+        "default": "inline",
+        "modes": [
+          "inline",
+          "floating",
+          "fullscreen",
+          "newWindow"
+        ],
+        "sandbox": "strict"
+      },
+      "git": {
+        "changedAt": "2026-07-24T01:39:07.000Z",
+        "revision": null,
+        "basis": "legacy",
+        "path": "../sexy-love-chat/index.html"
+      },
+      "changedAt": "2026-07-24T01:39:07.000Z",
+      "receipt": null
+    },
+    {
+      "id": "markdown-viewer",
+      "version": null,
+      "title": "Markdown Viewer",
+      "description": "Theme-compliant rendered Markdown viewer for catalog docs and local pasted/dropped Markdown files.",
+      "kind": "application",
+      "status": "provisional",
+      "required": false,
+      "tags": [
+        "docs",
+        "markdown",
+        "viewer",
+        "v11"
+      ],
+      "sourceKind": "directory",
+      "gitMode": "root",
+      "buildMode": "none",
+      "releaseKind": "directory",
+      "availability": "provisional",
+      "url": "/markdown-viewer/index.html",
+      "launch": {
+        "default": "inline",
+        "modes": [
+          "inline",
+          "floating",
+          "fullscreen",
+          "newWindow"
+        ],
+        "sandbox": "strict"
+      },
+      "git": {
+        "revision": "92dc10c576ef35b7a87f663ebf45eef1173a00c4",
+        "changedAt": "2026-07-24T01:39:07.000Z",
+        "basis": "source",
+        "path": "markdown-viewer"
+      },
+      "changedAt": "2026-07-24T01:39:07.000Z",
+      "receipt": null
+    },
+    {
+      "id": "meme-lab",
+      "version": null,
+      "title": "Meme Lab",
+      "description": "Single-file meme generator with template system, drag-and-drop image support, crop editing, text overlay, and PNG export. Features canvas auto-expansion, layer management, undo/redo, clipboard paste, and JSON template save/load for reusable meme compositions.",
+      "kind": "application",
+      "status": "provisional",
+      "required": false,
+      "tags": [
+        "tool",
+        "graphics",
+        "meme",
+        "generator",
+        "image",
+        "template",
+        "v11"
+      ],
+      "sourceKind": "directory",
+      "gitMode": "root",
+      "buildMode": "none",
+      "releaseKind": "directory",
+      "availability": "provisional",
+      "url": "/meme-lab/meme-lab.html",
+      "launch": {
+        "default": "inline",
+        "modes": [
+          "inline",
+          "floating",
+          "fullscreen",
+          "newWindow"
+        ],
+        "sandbox": "strict"
+      },
+      "git": {
+        "revision": "92dc10c576ef35b7a87f663ebf45eef1173a00c4",
+        "changedAt": "2026-07-24T01:39:07.000Z",
+        "basis": "source",
+        "path": "meme-lab"
+      },
+      "changedAt": "2026-07-24T01:39:07.000Z",
+      "receipt": null
+    },
+    {
+      "id": "v10-classic",
+      "version": null,
+      "title": "NEXUS v10 Classic Portal",
+      "description": "The clean PeernetLobby app runtime v11 is based on.",
+      "kind": "application",
+      "status": "provisional",
+      "required": false,
+      "tags": [
+        "hub",
+        "v10",
+        "peernet"
+      ],
+      "sourceKind": "directory",
+      "gitMode": "root",
+      "buildMode": "none",
+      "releaseKind": "directory",
+      "availability": "provisional",
+      "url": "/app-hub/v10-portal.html",
+      "launch": {
+        "default": "inline",
+        "modes": [
+          "inline",
+          "fullscreen",
+          "newWindow"
+        ],
+        "sandbox": "strict"
+      },
+      "git": {
+        "revision": "92dc10c576ef35b7a87f663ebf45eef1173a00c4",
+        "changedAt": "2026-07-24T01:39:07.000Z",
+        "basis": "source",
+        "path": "app-hub"
+      },
+      "changedAt": "2026-07-24T01:39:07.000Z",
+      "receipt": null
+    },
+    {
+      "id": "v10-enhanced",
+      "version": null,
+      "title": "NEXUS v10 Enhanced Portal",
+      "description": "The rich v10 portal containing themes, sound, floating panels, and storage management ideas externalized in v11 libs.",
+      "kind": "application",
+      "status": "provisional",
+      "required": false,
+      "tags": [
+        "hub",
+        "v10",
+        "themes",
+        "sound",
+        "floating"
+      ],
+      "sourceKind": "directory",
+      "gitMode": "root",
+      "buildMode": "none",
+      "releaseKind": "directory",
+      "availability": "provisional",
+      "url": "/app-hub/v10-portal-enhanced.html",
+      "launch": {
+        "default": "inline",
+        "modes": [
+          "inline",
+          "floating",
+          "fullscreen",
+          "newWindow"
+        ],
+        "sandbox": "strict"
+      },
+      "git": {
+        "revision": "92dc10c576ef35b7a87f663ebf45eef1173a00c4",
+        "changedAt": "2026-07-24T01:39:07.000Z",
+        "basis": "source",
+        "path": "app-hub"
+      },
+      "changedAt": "2026-07-24T01:39:07.000Z",
+      "receipt": null
+    },
+    {
+      "id": "v10-full-portal",
+      "version": null,
+      "title": "NEXUS v10 Full Portal",
+      "description": "Full v10 portal compatibility surface for PeernetLobby apps, notepad, shared text pad, sequencer, PeerModGroove launcher, peer console, linked artifacts, and sprite GIF launcher.",
+      "kind": "legacy",
+      "status": "provisional",
+      "required": false,
+      "tags": [
+        "hub",
+        "v10",
+        "legacy",
+        "compatibility",
+        "peernet",
+        "tooling"
+      ],
+      "sourceKind": "directory",
+      "gitMode": "root",
+      "buildMode": "none",
+      "releaseKind": "directory",
+      "availability": "provisional",
+      "url": "/app-hub/v10-portal.html",
+      "launch": {
+        "default": "inline",
+        "modes": [
+          "inline",
+          "fullscreen",
+          "newWindow"
+        ],
+        "sandbox": "strict"
+      },
+      "git": {
+        "revision": "92dc10c576ef35b7a87f663ebf45eef1173a00c4",
+        "changedAt": "2026-07-24T01:39:07.000Z",
+        "basis": "source",
+        "path": "app-hub"
+      },
+      "changedAt": "2026-07-24T01:39:07.000Z",
+      "receipt": null
+    },
+    {
+      "id": "v9-full-portal",
+      "version": null,
+      "title": "NEXUS v9 Full Portal",
+      "description": "Full v9 portal kept as a legacy compatibility surface for all v9 embedded tools: artifacts, notepad, calculator, color picker, palette, lobby chat, local snapshots, mini file, shared sessions, shooter game, and unified user settings.",
+      "kind": "legacy",
+      "status": "provisional",
+      "required": false,
+      "tags": [
+        "hub",
+        "v9",
+        "legacy",
+        "compatibility",
+        "tooling"
+      ],
+      "sourceKind": "directory",
+      "gitMode": "root",
+      "buildMode": "none",
+      "releaseKind": "directory",
+      "availability": "provisional",
+      "url": "/app-hub/v9-portal.html",
+      "launch": {
+        "default": "inline",
+        "modes": [
+          "inline",
+          "fullscreen",
+          "newWindow"
+        ],
+        "sandbox": "strict"
+      },
+      "git": {
+        "revision": "92dc10c576ef35b7a87f663ebf45eef1173a00c4",
+        "changedAt": "2026-07-24T01:39:07.000Z",
+        "basis": "source",
+        "path": "app-hub"
+      },
+      "changedAt": "2026-07-24T01:39:07.000Z",
+      "receipt": null
+    },
+    {
+      "id": "pdf-forge-nexus",
+      "version": null,
+      "title": "PDF Forge Nexus",
+      "description": "Client-side PDF manipulator with merge, split, and conversion capabilities. Features drag-and-drop PDF/image loading, page reordering, rotation, multi-page merge, PDF splitting (by N pages, at page, range, or each page), PDF to text extraction, image to PDF conversion, and preview. All processing happens locally with no server upload.",
+      "kind": "application",
+      "status": "provisional",
+      "required": false,
+      "tags": [
+        "tool",
+        "pdf",
+        "converter",
+        "editor",
+        "graphics",
+        "utility",
+        "v11"
+      ],
+      "sourceKind": "directory",
+      "gitMode": "root",
+      "buildMode": "none",
+      "releaseKind": "directory",
+      "availability": "provisional",
+      "url": "/pdf-forge-nexus/index.html",
+      "launch": {
+        "default": "inline",
+        "modes": [
+          "inline",
+          "floating",
+          "fullscreen",
+          "newWindow"
+        ],
+        "sandbox": "strict"
+      },
+      "git": {
+        "changedAt": "2026-07-24T01:39:07.000Z",
+        "revision": null,
+        "basis": "legacy",
+        "path": "../pdf-forge-nexus/index.html"
+      },
+      "changedAt": "2026-07-24T01:39:07.000Z",
+      "receipt": null
+    },
+    {
+      "id": "peer-mod-groove",
+      "version": null,
+      "title": "PeerModGroove",
+      "description": "Peer-synchronized modular audio app launched from v10/v11 rather than embedded into the hub runtime.",
+      "kind": "application",
+      "status": "provisional",
+      "required": false,
+      "tags": [
+        "audio",
+        "peernet",
+        "modular"
+      ],
+      "sourceKind": "directory",
+      "gitMode": "root",
+      "buildMode": "none",
+      "releaseKind": "directory",
+      "availability": "provisional",
+      "url": "/PeerModGroove/index.html",
+      "launch": {
+        "default": "inline",
+        "modes": [
+          "inline",
+          "floating",
+          "fullscreen",
+          "newWindow"
+        ],
+        "sandbox": "strict"
+      },
+      "git": {
+        "revision": "92dc10c576ef35b7a87f663ebf45eef1173a00c4",
+        "changedAt": "2026-07-24T01:39:07.000Z",
+        "basis": "source",
+        "path": "PeerModGroove"
+      },
+      "changedAt": "2026-07-24T01:39:07.000Z",
+      "receipt": null
+    },
+    {
+      "id": "spc-procedural-sharepic-studio",
+      "version": null,
+      "title": "Procedural Sharepic Studio",
+      "description": "Most feature-rich sharepic generator with template system, procedural backgrounds, text effects, color themes, and export options. Create branded social media images with custom layouts, typography, filters, and batch processing capabilities.",
+      "kind": "application",
+      "status": "provisional",
+      "required": false,
+      "tags": [
+        "tool",
+        "graphics",
+        "social",
+        "template",
+        "procedural",
+        "generator",
+        "design",
+        "v11"
+      ],
+      "sourceKind": "directory",
+      "gitMode": "root",
+      "buildMode": "none",
+      "releaseKind": "directory",
+      "availability": "provisional",
+      "url": "/spc/procedural_sharepic_studio.html",
+      "launch": {
+        "default": "inline",
+        "modes": [
+          "inline",
+          "floating",
+          "fullscreen",
+          "newWindow"
+        ],
+        "sandbox": "strict"
+      },
+      "git": {
+        "revision": "92dc10c576ef35b7a87f663ebf45eef1173a00c4",
+        "changedAt": "2026-07-24T01:39:07.000Z",
+        "basis": "source",
+        "path": "spc"
+      },
+      "changedAt": "2026-07-24T01:39:07.000Z",
+      "receipt": null
+    },
+    {
+      "id": "prompt-forge-nexus",
+      "version": null,
+      "title": "Prompt Forge Nexus",
+      "description": "Advanced LLM prompt generator with placeholder system, tag-based filtering, prompt operations library, assembly multi-prompt combiner, and 7 cyberpunk themes. Pure client-side with localStorage persistence, export/import, and live preview.",
+      "kind": "application",
+      "status": "provisional",
+      "required": false,
+      "tags": [
+        "tool",
+        "editor",
+        "ai",
+        "prompts",
+        "creative",
+        "writing",
+        "generator",
+        "cyberpunk",
+        "v11"
+      ],
+      "sourceKind": "directory",
+      "gitMode": "root",
+      "buildMode": "none",
+      "releaseKind": "directory",
+      "availability": "provisional",
+      "url": "/prompt-gen-nexus/index.html",
+      "launch": {
+        "default": "inline",
+        "modes": [
+          "inline",
+          "floating",
+          "fullscreen",
+          "newWindow"
+        ],
+        "sandbox": "strict"
+      },
+      "git": {
+        "changedAt": "2026-07-24T01:39:07.000Z",
+        "revision": null,
+        "basis": "legacy",
+        "path": "../prompt-gen-nexus/index.html"
+      },
+      "changedAt": "2026-07-24T01:39:07.000Z",
+      "receipt": null
+    },
+    {
+      "id": "qr-studio",
+      "version": "0.1.0",
+      "title": "QR Studio",
+      "description": "Single-file local QR code generator staged independently from the hub.",
+      "kind": "application",
+      "status": "experimental",
+      "required": true,
+      "tags": [
+        "tool",
+        "qr-code",
+        "generator",
+        "single-file"
+      ],
+      "sourceKind": "file",
+      "gitMode": "root",
+      "buildMode": "none",
+      "releaseKind": "file",
+      "availability": "source-only",
+      "url": "/qr-studio/index.html",
+      "launch": {
+        "default": "inline",
+        "modes": [
+          "inline",
+          "floating",
+          "fullscreen",
+          "newWindow"
+        ],
+        "sandbox": "trusted"
+      },
+      "git": {
+        "changedAt": "2026-07-24T01:39:07.000Z",
+        "revision": null,
+        "basis": "legacy",
+        "path": "../qr-studio/index.html"
+      },
+      "changedAt": "2026-07-24T01:39:07.000Z",
+      "receipt": null
+    },
+    {
+      "id": "reveal-peer-plugin",
+      "version": null,
+      "title": "RevealPeerJS",
+      "description": "Reveal.js plugin that connects all slide viewers in a P2P lobby with chat, live polls, Pong challenges, and a top-down arena shooter mini-game.",
+      "kind": "application",
+      "status": "provisional",
+      "required": false,
+      "tags": [
+        "plugin",
+        "presentation",
+        "multiplayer",
+        "peernet",
+        "game",
+        "chat",
+        "v11"
+      ],
+      "sourceKind": "directory",
+      "gitMode": "root",
+      "buildMode": "none",
+      "releaseKind": "directory",
+      "availability": "provisional",
+      "url": "/reveal-peer-plugin/index.html",
+      "launch": {
+        "default": "fullscreen",
+        "modes": [
+          "fullscreen",
+          "newWindow"
+        ],
+        "sandbox": "strict"
+      },
+      "git": {
+        "revision": "92dc10c576ef35b7a87f663ebf45eef1173a00c4",
+        "changedAt": "2026-07-24T01:39:07.000Z",
+        "basis": "source",
+        "path": "reveal-peer-plugin"
+      },
+      "changedAt": "2026-07-24T01:39:07.000Z",
+      "receipt": null
+    },
+    {
+      "id": "server-guide",
+      "version": null,
+      "title": "Server Guide",
+      "description": "Local serving and deployment notes for the static artifact collection.",
+      "kind": "document",
+      "status": "provisional",
+      "required": false,
+      "tags": [
+        "docs",
+        "markdown",
+        "server",
+        "viewer"
+      ],
+      "sourceKind": "file",
+      "gitMode": "root",
+      "buildMode": "assemble",
+      "releaseKind": "file",
+      "availability": "provisional",
+      "url": "/markdown-viewer.html?src=../SERVER_GUIDE.md",
+      "launch": {
+        "default": "inline",
+        "modes": [
+          "inline",
+          "floating",
+          "fullscreen",
+          "newWindow"
+        ],
+        "sandbox": "strict"
+      },
+      "git": {
+        "revision": "92dc10c576ef35b7a87f663ebf45eef1173a00c4",
+        "changedAt": "2026-07-24T01:39:07.000Z",
+        "basis": "source",
+        "path": "SERVER_GUIDE.md"
+      },
+      "changedAt": "2026-07-24T01:39:07.000Z",
+      "receipt": null
+    },
+    {
+      "id": "sprite-fan-atlas-studio",
+      "version": null,
+      "title": "Sprite Fan Atlas Studio",
+      "description": "Integrated sprite-sheet cleanup, review, postprocessing, repack, PNG export, and sprites.json/review-report manifest studio for generated sprite assets.",
+      "kind": "application",
+      "status": "provisional",
+      "required": false,
+      "tags": [
+        "tool",
+        "graphics",
+        "sprite",
+        "postprocessing",
+        "atlas",
+        "game-dev"
+      ],
+      "sourceKind": "directory",
+      "gitMode": "root",
+      "buildMode": "none",
+      "releaseKind": "directory",
+      "availability": "provisional",
+      "url": "/sprite-fan/atlas-studio.html",
+      "launch": {
+        "default": "inline",
+        "modes": [
+          "inline",
+          "floating",
+          "fullscreen",
+          "newWindow"
+        ],
+        "sandbox": "strict"
+      },
+      "git": {
+        "revision": "92dc10c576ef35b7a87f663ebf45eef1173a00c4",
+        "changedAt": "2026-07-24T01:39:07.000Z",
+        "basis": "source",
+        "path": "sprite-fan"
+      },
+      "changedAt": "2026-07-24T01:39:07.000Z",
+      "receipt": null
+    },
+    {
+      "id": "sprite-gif-creator",
+      "version": null,
+      "title": "Sprite GIF Creator",
+      "description": "Browser-only sprite-sheet splitter, frame editor, PNG exporter, and animated GIF assembler.",
+      "kind": "application",
+      "status": "provisional",
+      "required": false,
+      "tags": [
+        "tool",
+        "graphics",
+        "sprite"
+      ],
+      "sourceKind": "directory",
+      "gitMode": "root",
+      "buildMode": "none",
+      "releaseKind": "directory",
+      "availability": "provisional",
+      "url": "/spc/sprite-gif-creator.html",
+      "launch": {
+        "default": "inline",
+        "modes": [
+          "inline",
+          "floating",
+          "newWindow"
+        ],
+        "sandbox": "strict"
+      },
+      "git": {
+        "revision": "92dc10c576ef35b7a87f663ebf45eef1173a00c4",
+        "changedAt": "2026-07-24T01:39:07.000Z",
+        "basis": "source",
+        "path": "spc"
+      },
+      "changedAt": "2026-07-24T01:39:07.000Z",
+      "receipt": null
+    },
+    {
+      "id": "spc-sprite-gif-creator-v2",
+      "version": null,
+      "title": "Sprite GIF Creator v2",
+      "description": "Enhanced sprite sheet animator with timeline, frame editing, multiple source support, batch processing, and GIF export. Features source card management, improved batch operations, and pixel-perfect preview controls.",
+      "kind": "application",
+      "status": "provisional",
+      "required": false,
+      "tags": [
+        "tool",
+        "graphics",
+        "sprite",
+        "animator",
+        "gif",
+        "pixel-art",
+        "game-dev",
+        "v11"
+      ],
+      "sourceKind": "directory",
+      "gitMode": "root",
+      "buildMode": "none",
+      "releaseKind": "directory",
+      "availability": "provisional",
+      "url": "/spc/sprite-gif-creator-v2.html",
+      "launch": {
+        "default": "inline",
+        "modes": [
+          "inline",
+          "floating",
+          "fullscreen",
+          "newWindow"
+        ],
+        "sandbox": "strict"
+      },
+      "git": {
+        "revision": "92dc10c576ef35b7a87f663ebf45eef1173a00c4",
+        "changedAt": "2026-07-24T01:39:07.000Z",
+        "basis": "source",
+        "path": "spc"
+      },
+      "changedAt": "2026-07-24T01:39:07.000Z",
+      "receipt": null
+    },
+    {
+      "id": "storyboard-studio",
+      "version": null,
+      "title": "Storyboard Studio",
+      "description": "Client-side illustration and text document builder for arranging imported images, prose, captions, blueprint blocks, slogans, and quotes into printable or self-contained HTML storyboard artifacts.",
+      "kind": "application",
+      "status": "provisional",
+      "required": false,
+      "tags": [
+        "tool",
+        "graphics",
+        "storyboard",
+        "illustration",
+        "writing",
+        "html",
+        "local-first",
+        "print"
+      ],
+      "sourceKind": "directory",
+      "gitMode": "root",
+      "buildMode": "none",
+      "releaseKind": "directory",
+      "availability": "provisional",
+      "url": "/storyboard-studio/index.html",
+      "launch": {
+        "default": "inline",
+        "modes": [
+          "inline",
+          "floating",
+          "fullscreen",
+          "newWindow"
+        ],
+        "sandbox": "strict"
+      },
+      "git": {
+        "revision": "92dc10c576ef35b7a87f663ebf45eef1173a00c4",
+        "changedAt": "2026-07-24T01:39:07.000Z",
+        "basis": "source",
+        "path": "storyboard-studio"
+      },
+      "changedAt": "2026-07-24T01:39:07.000Z",
+      "receipt": null
+    },
+    {
+      "id": "telegram-bot-api-workbench",
+      "version": null,
+      "title": "Telegram Bot API Workbench",
+      "description": "Security-conscious, self-contained browser console for Telegram bots with status and webhook diagnostics, messaging, update polling, command and chat inspection, generic JSON and multipart method runners, abortable requests, reusable JavaScript snippets, safe profile exchange, and token-redacted logs.",
+      "kind": "application",
+      "status": "provisional",
+      "required": false,
+      "tags": [
+        "tool",
+        "developer",
+        "telegram",
+        "bot",
+        "api",
+        "webhook",
+        "messaging",
+        "debugging",
+        "client-side",
+        "local-first"
+      ],
+      "sourceKind": "directory",
+      "gitMode": "root",
+      "buildMode": "none",
+      "releaseKind": "directory",
+      "availability": "provisional",
+      "url": "/telegram-bot-api-workbench/index.html",
+      "launch": {
+        "default": "newWindow",
+        "modes": [
+          "inline",
+          "floating",
+          "fullscreen",
+          "newWindow"
+        ],
+        "sandbox": "strict"
+      },
+      "git": {
+        "revision": "92dc10c576ef35b7a87f663ebf45eef1173a00c4",
+        "changedAt": "2026-07-24T01:39:07.000Z",
+        "basis": "source",
+        "path": "telegram-bot-api-workbench"
+      },
+      "changedAt": "2026-07-24T01:39:07.000Z",
+      "receipt": null
+    },
+    {
+      "id": "spc-template-engine",
+      "version": null,
+      "title": "Template Engine",
+      "description": "Template processing engine for creating and managing reusable design templates. Supports variable substitution, conditional rendering, loops, and custom processing logic for generating dynamic content from templates.",
+      "kind": "application",
+      "status": "provisional",
+      "required": false,
+      "tags": [
+        "tool",
+        "template",
+        "generator",
+        "automation",
+        "design",
+        "workflow",
+        "v11"
+      ],
+      "sourceKind": "directory",
+      "gitMode": "root",
+      "buildMode": "none",
+      "releaseKind": "directory",
+      "availability": "provisional",
+      "url": "/spc/template_engine.html",
+      "launch": {
+        "default": "inline",
+        "modes": [
+          "inline",
+          "floating",
+          "fullscreen",
+          "newWindow"
+        ],
+        "sandbox": "strict"
+      },
+      "git": {
+        "revision": "92dc10c576ef35b7a87f663ebf45eef1173a00c4",
+        "changedAt": "2026-07-24T01:39:07.000Z",
+        "basis": "source",
+        "path": "spc"
+      },
+      "changedAt": "2026-07-24T01:39:07.000Z",
+      "receipt": null
+    },
+    {
+      "id": "v8-collab-code-editor",
+      "version": null,
+      "title": "v8 Collab Code Editor",
+      "description": "Full Monaco-based collaborative code editor from the earlier app hub line, exposed through the v11 catalog.",
+      "kind": "application",
+      "status": "provisional",
+      "required": false,
+      "tags": [
+        "editor",
+        "collaborative",
+        "monaco",
+        "code"
+      ],
+      "sourceKind": "directory",
+      "gitMode": "root",
+      "buildMode": "none",
+      "releaseKind": "directory",
+      "availability": "provisional",
+      "url": "/app-hub/collab-editor.html",
+      "launch": {
+        "default": "inline",
+        "modes": [
+          "inline",
+          "floating",
+          "fullscreen",
+          "newWindow"
+        ],
+        "sandbox": "strict"
+      },
+      "git": {
+        "revision": "92dc10c576ef35b7a87f663ebf45eef1173a00c4",
+        "changedAt": "2026-07-24T01:39:07.000Z",
+        "basis": "source",
+        "path": "app-hub"
+      },
+      "changedAt": "2026-07-24T01:39:07.000Z",
+      "receipt": null
+    },
+    {
+      "id": "v8-collab-pad-lite",
+      "version": null,
+      "title": "v8 Collab Pad Lite",
+      "description": "Textarea-based collaborative editor from the earlier app hub line, exposed through the v11 catalog.",
+      "kind": "application",
+      "status": "provisional",
+      "required": false,
+      "tags": [
+        "editor",
+        "collaborative",
+        "textarea",
+        "p2p"
+      ],
+      "sourceKind": "directory",
+      "gitMode": "root",
+      "buildMode": "none",
+      "releaseKind": "directory",
+      "availability": "provisional",
+      "url": "/app-hub/collab-editor-lite.html",
+      "launch": {
+        "default": "inline",
+        "modes": [
+          "inline",
+          "floating",
+          "newWindow"
+        ],
+        "sandbox": "strict"
+      },
+      "git": {
+        "revision": "92dc10c576ef35b7a87f663ebf45eef1173a00c4",
+        "changedAt": "2026-07-24T01:39:07.000Z",
+        "basis": "source",
+        "path": "app-hub"
+      },
+      "changedAt": "2026-07-24T01:39:07.000Z",
+      "receipt": null
+    },
+    {
+      "id": "v11-peer-daw",
+      "version": null,
+      "title": "V11 Peer DAW",
+      "description": "Published independent submodule pinned to its parent-owned release revision; newer unpublished child commits remain outside the parent gitlink until explicitly promoted.",
+      "kind": "application",
+      "status": "provisional",
+      "required": true,
+      "tags": [
+        "audio",
+        "project",
+        "submodule"
+      ],
+      "sourceKind": "project",
+      "gitMode": "submodule",
+      "buildMode": "compile",
+      "releaseKind": "directory",
+      "availability": "provisional",
+      "url": "/v11-peer-daw/index.html",
+      "launch": {
+        "default": "inline",
+        "modes": [
+          "inline",
+          "fullscreen",
+          "newWindow"
+        ],
+        "sandbox": "trusted"
+      },
+      "git": {
+        "changedAt": "2026-07-19T02:48:09.000Z",
+        "revision": "37783861b7681852b0605a891a2b831c4cde82de",
+        "basis": "submodule-pin",
+        "path": "v11-peer-daw"
+      },
+      "changedAt": "2026-07-19T02:48:09.000Z",
+      "receipt": null
+    },
+    {
+      "id": "hyperblast-shooter",
+      "version": null,
+      "title": "Hyperblast Shooter",
+      "description": "Published independent submodule pinned to the parent-owned reachable revision; newer locally verified release branches remain outside the parent gitlink until published.",
+      "kind": "application",
+      "status": "provisional",
+      "required": true,
+      "tags": [
+        "game",
+        "project",
+        "submodule"
+      ],
+      "sourceKind": "project",
+      "gitMode": "submodule",
+      "buildMode": "none",
+      "releaseKind": "directory",
+      "availability": "provisional",
+      "url": "/hyperblast-shooter/index.html",
+      "launch": {
+        "default": "inline",
+        "modes": [
+          "inline",
+          "floating",
+          "newWindow"
+        ],
+        "sandbox": "trusted"
+      },
+      "git": {
+        "changedAt": "2026-07-19T02:44:31.000Z",
+        "revision": "c9ea7ffb7d24ef6125521eadf6ffec8e2cb6082a",
+        "basis": "submodule-pin",
+        "path": "hyperblast-shooter"
+      },
+      "changedAt": "2026-07-19T02:44:31.000Z",
+      "receipt": null
+    },
+    {
+      "id": "sprite-extractor",
+      "version": null,
+      "title": "Sprite Extractor",
+      "description": "Strict sprite extraction copy with alpha auto-detection, manual grid setup, default alpha trimming, per-sprite naming, and named PNG/ZIP export.",
+      "kind": "application",
+      "status": "provisional",
+      "required": false,
+      "tags": [
+        "tool",
+        "graphics",
+        "sprite",
+        "extraction"
+      ],
+      "sourceKind": "directory",
+      "gitMode": "root",
+      "buildMode": "none",
+      "releaseKind": "directory",
+      "availability": "provisional",
+      "url": "/sprite-extractor/index.html",
+      "launch": {
+        "default": "inline",
+        "modes": [
+          "inline",
+          "floating",
+          "newWindow"
+        ],
+        "sandbox": "strict"
+      },
+      "git": {
+        "changedAt": "2026-07-13T21:19:46.000Z",
+        "revision": null,
+        "basis": "legacy",
+        "path": "../sprite-extractor/index.html"
+      },
+      "changedAt": "2026-07-13T21:19:46.000Z",
+      "receipt": null
+    },
+    {
+      "id": "overlay-cam-apk",
+      "version": "0.1.0",
+      "title": "Overlay Cam — Intuitive UX APK",
+      "description": "Standalone landing page and Android debug APK download.",
+      "kind": "download",
+      "status": "experimental",
+      "required": false,
+      "tags": [
+        "android",
+        "camera",
+        "apk",
+        "download"
+      ],
+      "sourceKind": "directory",
+      "gitMode": "root",
+      "buildMode": "none",
+      "releaseKind": "download",
+      "availability": "source-only",
+      "url": "/overlay-cam/index.html",
+      "launch": {
+        "default": "download",
+        "modes": [
+          "newWindow",
+          "download"
+        ],
+        "sandbox": "strict"
+      },
+      "git": {
+        "revision": "f63834b94b9bb23d12358c942776a01043764862",
+        "changedAt": "2026-07-10T14:56:08.000Z",
+        "basis": "source",
+        "path": "overlay-cam"
+      },
+      "changedAt": "2026-07-10T14:56:08.000Z",
+      "receipt": null
+    },
+    {
+      "id": "artifacts-toc",
+      "version": null,
+      "title": "Artifacts Table of Contents",
+      "description": "Repository-wide curated artifact list. v11 keeps this as information while generated JSON becomes the machine-readable catalog.",
+      "kind": "document",
+      "status": "provisional",
+      "required": false,
+      "tags": [
+        "catalog",
+        "docs",
+        "markdown",
+        "viewer"
+      ],
+      "sourceKind": "file",
+      "gitMode": "root",
+      "buildMode": "assemble",
+      "releaseKind": "file",
+      "availability": "provisional",
+      "url": "/markdown-viewer.html?src=../ARTIFACTS_TOC.md",
+      "launch": {
+        "default": "inline",
+        "modes": [
+          "inline",
+          "floating",
+          "fullscreen",
+          "newWindow"
+        ],
+        "sandbox": "strict"
+      },
+      "git": {
+        "revision": "2d2b56f581de9dec5ed403e9f9abd1020f4bb290",
+        "changedAt": "2026-07-10T14:48:59.000Z",
+        "basis": "source",
+        "path": "ARTIFACTS_TOC.md"
+      },
+      "changedAt": "2026-07-10T14:48:59.000Z",
+      "receipt": null
+    },
+    {
+      "id": "v11-roadmap",
+      "version": null,
+      "title": "v11 Modularization Roadmap",
+      "description": "Specs and TODOs for feature areas intentionally not fully implemented in this slice.",
+      "kind": "document",
+      "status": "provisional",
+      "required": false,
+      "tags": [
+        "docs",
+        "markdown",
+        "roadmap",
+        "v11",
+        "viewer"
+      ],
+      "sourceKind": "file",
+      "gitMode": "root",
+      "buildMode": "assemble",
+      "releaseKind": "file",
+      "availability": "provisional",
+      "url": "/markdown-viewer.html?src=docs/ROADMAP.md",
+      "launch": {
+        "default": "inline",
+        "modes": [
+          "inline",
+          "floating",
+          "fullscreen",
+          "newWindow"
+        ],
+        "sandbox": "strict"
+      },
+      "git": {
+        "revision": "4acbdf97fc1a1915620f87810fbf81bb434a1dee",
+        "changedAt": "2026-05-21T02:15:07.000Z",
+        "basis": "source",
+        "path": "app-hub-v11/docs/ROADMAP.md"
+      },
+      "changedAt": "2026-05-21T02:15:07.000Z",
+      "receipt": null
+    },
+    {
+      "id": "font-lab-browser",
+      "version": null,
+      "title": "Font Lab Browser",
+      "description": "Single-file, browser-only font builder. Upload a glyph grid image, remove white to transparency, smooth and trace, then export an OTF plus debug assets.",
+      "kind": "application",
+      "status": "provisional",
+      "required": false,
+      "tags": [
+        "tool",
+        "font",
+        "graphics",
+        "v11"
+      ],
+      "sourceKind": "directory",
+      "gitMode": "root",
+      "buildMode": "none",
+      "releaseKind": "directory",
+      "availability": "provisional",
+      "url": "/font-lab-browser/index.html",
+      "launch": {
+        "default": "inline",
+        "modes": [
+          "inline",
+          "floating",
+          "fullscreen",
+          "newWindow"
+        ],
+        "sandbox": "strict"
+      },
+      "git": {
+        "revision": "8cdea89607fd6179b5b653064291b747fe1b553d",
+        "changedAt": "2026-05-18T20:41:14.000Z",
+        "basis": "source",
+        "path": "font-lab-browser"
+      },
+      "changedAt": "2026-05-18T20:41:14.000Z",
+      "receipt": null
+    },
+    {
+      "id": "palette-studio",
+      "version": null,
+      "title": "Palette Studio",
+      "description": "Advanced palette generator with multiple anchors, role inference, contrast checks, and CSS variable export for readable UI themes.",
+      "kind": "application",
+      "status": "provisional",
+      "required": false,
+      "tags": [
+        "tool",
+        "palette",
+        "theme",
+        "color",
+        "design",
+        "v11"
+      ],
+      "sourceKind": "directory",
+      "gitMode": "root",
+      "buildMode": "none",
+      "releaseKind": "directory",
+      "availability": "provisional",
+      "url": "/palette-studio/index.html",
+      "launch": {
+        "default": "inline",
+        "modes": [
+          "inline",
+          "floating",
+          "fullscreen",
+          "newWindow"
+        ],
+        "sandbox": "strict"
+      },
+      "git": {
+        "revision": "8cdea89607fd6179b5b653064291b747fe1b553d",
+        "changedAt": "2026-05-18T20:41:14.000Z",
+        "basis": "source",
+        "path": "palette-studio"
+      },
+      "changedAt": "2026-05-18T20:41:14.000Z",
+      "receipt": null
+    },
+    {
+      "id": "artifact-handling-standard",
+      "version": "1.0.0",
+      "title": "Artifact Handling Standard",
+      "description": "Normative V12 instructions for files, directories, projects, Git ownership, builds, Markdown, downloads, links, and inline text.",
+      "kind": "document",
+      "status": "active",
+      "required": true,
+      "tags": [
+        "documentation",
+        "architecture",
+        "policy",
+        "v12"
+      ],
+      "sourceKind": "file",
+      "gitMode": "root",
+      "buildMode": "assemble",
+      "releaseKind": "file",
+      "availability": "source-only",
+      "url": "/docs/architecture/ARTIFACT_HANDLING.md",
+      "launch": {
+        "default": "newWindow",
+        "modes": [
+          "inline",
+          "newWindow"
+        ],
+        "sandbox": "strict"
+      },
+      "git": {
+        "changedAt": null,
+        "revision": null,
+        "basis": "unknown",
+        "path": "docs/architecture/ARTIFACT_HANDLING.md"
+      },
+      "changedAt": null,
+      "receipt": null
+    },
+    {
+      "id": "app-hub-v12",
+      "version": "1.0.0",
+      "title": "Artifacts Hub V12",
+      "description": "Catalog and launcher consuming generated artifact releases without owning their implementations.",
+      "kind": "application",
+      "status": "active",
+      "required": true,
+      "tags": [
+        "hub",
+        "catalog",
+        "launcher",
+        "v12"
+      ],
+      "sourceKind": "directory",
+      "gitMode": "root",
+      "buildMode": "assemble",
+      "releaseKind": "directory",
+      "availability": "source-only",
+      "url": "/apps/app-hub-v12/index.html",
+      "launch": {
+        "default": "newWindow",
+        "modes": [
+          "newWindow"
+        ],
+        "sandbox": "none"
+      },
+      "git": {
+        "changedAt": null,
+        "revision": null,
+        "basis": "unknown",
+        "path": "apps/app-hub-v12"
+      },
+      "changedAt": null,
+      "receipt": null
+    },
+    {
+      "id": "ethic-brawl-source",
+      "version": null,
+      "title": "Ethic Brawl source repository",
+      "description": "External source link modeled directly rather than as a fake local artifact release.",
+      "kind": "link",
+      "status": "experimental",
+      "required": false,
+      "tags": [
+        "source",
+        "repository",
+        "game"
+      ],
+      "sourceKind": "external",
+      "gitMode": "none",
+      "buildMode": "external",
+      "releaseKind": "external",
+      "availability": "external",
+      "url": "https://github.com/fkr-0/ethic-brawl",
+      "launch": {
+        "default": "newWindow",
+        "modes": [
+          "newWindow"
+        ],
+        "sandbox": "none"
+      },
+      "git": {
+        "changedAt": null,
+        "revision": null,
+        "basis": "unknown",
+        "path": "registry/sources.d/ethic-brawl-source.json"
+      },
+      "changedAt": null,
+      "receipt": null
+    },
+    {
+      "id": "v12-migration-note",
+      "version": null,
+      "title": "V12 migration status",
+      "description": "Short catalog-native status text demonstrating the inline text contract.",
+      "kind": "text",
+      "status": "experimental",
+      "required": false,
+      "tags": [
+        "v12",
+        "migration",
+        "status"
+      ],
+      "sourceKind": "inline",
+      "gitMode": "none",
+      "buildMode": "none",
+      "releaseKind": "inline",
+      "availability": "inline",
+      "url": null,
+      "text": "V12 is being introduced additively. V11 remains operational while artifacts move to verified independent release contracts.",
+      "launch": {
+        "default": "none",
+        "modes": [
+          "none"
+        ],
+        "sandbox": "none"
+      },
+      "git": {
+        "changedAt": null,
+        "revision": null,
+        "basis": "unknown",
+        "path": "registry/sources.d/v12-migration-note.json"
+      },
+      "changedAt": null,
+      "receipt": null
+    }
+  ]
+}

@@ -1,0 +1,292 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark">
+  <meta name="theme-color" content="#121411">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; connect-src 'self'; img-src 'self' data:; frame-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'">
+  <meta name="description" content="V13Hub is a local-first artifact index with provenance, permissioned collection, and explicit PeerJS game lobbies.">
+  <title>V13Hub · Artifact Commons</title>
+  <link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+  <a class="skip-link" href="#library">Skip to artifact library</a>
+
+  <header class="masthead">
+    <a class="brand" href="#top" aria-label="V13Hub home">
+      <span class="brand-mark" aria-hidden="true">V13</span>
+      <span class="brand-copy"><strong>Artifact Commons</strong><small>evidence-first / local collection</small></span>
+    </a>
+    <nav class="lens-nav" aria-label="Artifact views">
+      <button class="lens is-active" type="button" data-lens="discover" aria-pressed="true">Discover</button>
+      <button class="lens" type="button" data-lens="collection" aria-pressed="false">Collection <span id="nav-collection-count">0</span></button>
+      <button class="lens" type="button" data-lens="peer" aria-pressed="false">Peer-aware <span id="nav-peer-count">0</span></button>
+    </nav>
+    <aside class="runtime-badges" aria-label="Runtime trust state">
+      <span class="runtime-badge"><i class="dot dot-local" aria-hidden="true"></i>local authority</span>
+      <span class="runtime-badge" id="peer-runtime"><i class="dot" aria-hidden="true"></i>peer layer off</span>
+    </aside>
+  </header>
+
+  <main id="top">
+    <section class="hero" aria-labelledby="hero-title">
+      <div class="hero-copy">
+        <p class="eyebrow">V13 / artifact system</p>
+        <h1 id="hero-title">Find the object.<br><em>Read the evidence.</em></h1>
+        <p class="hero-lede">A local-first artifact commons: search the field, inspect provenance and health, keep references by consent, and opt into bounded PeernetJS sessions without confusing transport acceptance with artifact proof.</p>
+        <section class="hero-stats" aria-label="Catalog summary">
+          <div><strong id="stat-total">—</strong><span>catalog records</span></div>
+          <div><strong id="stat-revision">—</strong><span>revision-backed</span></div>
+          <div><strong id="stat-peer">—</strong><span>peer-signalled</span></div>
+          <div><strong id="stat-receipt">—</strong><span>receipt-present</span></div>
+        </section>
+      </div>
+
+      <aside class="trust-panel" aria-label="Trust model">
+        <p class="panel-index">RUNTIME / EVIDENCE</p>
+        <div class="trust-row">
+          <span>Catalog</span>
+          <strong id="catalog-trust">Loading local metadata</strong>
+          <small id="catalog-built">No assertion yet</small>
+        </div>
+        <div class="trust-row">
+          <span>Collection</span>
+          <strong>Explicit + browser-local</strong>
+          <small>Pins store ids. Local files are reviewed before metadata is persisted.</small>
+        </div>
+        <div class="trust-row">
+          <span>Peer proof</span>
+          <strong id="peer-proof">None</strong>
+          <small id="peer-proof-detail">Peer transport starts only after an explicit create/join action.</small>
+        </div>
+        <div class="trust-row">
+          <span>Recovery</span>
+          <strong id="peer-recovery">Not reported</strong>
+          <small id="peer-recovery-detail">Recovery diagnostics come only from the live PeernetJS/peerjslib stack.</small>
+        </div>
+      </aside>
+    </section>
+
+    <section class="principles" aria-label="V13Hub operating model">
+      <article>
+        <p class="panel-index">01 / DISCOVER</p>
+        <h2>Metadata is an index, not a verdict.</h2>
+        <p>Search title, tags, ids, source paths and revision evidence. Availability and evidence remain separate dimensions.</p>
+      </article>
+      <article>
+        <p class="panel-index">02 / INSPECT</p>
+        <h2>Evidence stays on its own axis.</h2>
+        <p>Recorded availability, revisions, receipts and runtime state remain separate so weak metadata cannot inherit stronger trust.</p>
+      </article>
+      <article>
+        <p class="panel-index">03 / COLLECT</p>
+        <h2>Intent precedes persistence.</h2>
+        <p>Catalog pins are references. Selected JSON is staged in memory, reviewed, then explicitly added or discarded.</p>
+      </article>
+      <article>
+        <p class="panel-index">04 / PEER</p>
+        <h2>Sessions are explicit. Handoff stays gated.</h2>
+        <p>Create or join a private capability-derived lobby. Artifact offers still require negotiated support, a content digest, bounded size, and healthy current transport evidence.</p>
+      </article>
+    </section>
+
+    <section class="peer-console" aria-labelledby="peer-console-title">
+      <header class="peer-console-head">
+        <div>
+          <p class="panel-index">LIVE LOBBY / OPT-IN</p>
+          <h2 id="peer-console-title">Peer session</h2>
+          <p>V13Hub lazily reuses the deployed PeernetJS client and peerjslib PeerJS lobby. Nothing connects until you create or join.</p>
+        </div>
+        <div class="peer-session-proof">
+          <strong id="peer-session-state">idle</strong>
+          <span id="peer-session-id">No session</span>
+        </div>
+      </header>
+      <div class="peer-console-grid">
+        <div class="peer-session-actions">
+          <button id="peer-create" class="primary-button" type="button">Create private session</button>
+          <label for="peer-join-code">
+            <span>Invitation capability</span>
+            <input id="peer-join-code" type="text" autocomplete="off" spellcheck="false" placeholder="v13hub-peer-v1.…">
+          </label>
+          <button id="peer-join" class="quiet-button" type="button">Join session</button>
+          <button id="peer-leave" class="quiet-button danger" type="button" disabled>Leave</button>
+        </div>
+        <div class="peer-invite">
+          <span>Created invitation</span>
+          <code id="peer-created-invite">Create a session to issue an invitation.</code>
+          <button id="peer-copy-invite" class="quiet-button" type="button" disabled>Copy invitation</button>
+          <small>The capability is the admission secret. Share it only with intended participants.</small>
+        </div>
+        <div class="peer-game-host">
+          <strong>Host a catalog game</strong>
+          <div class="peer-game-host-controls">
+            <label for="peer-game-select"><span class="peer-field-label">Game</span>
+              <select id="peer-game-select"><option value="">No local game target</option></select>
+            </label>
+            <label for="peer-game-max"><span class="peer-field-label">Seats</span>
+              <select id="peer-game-max">
+                <option value="2">2</option>
+                <option value="4" selected>4</option>
+                <option value="6">6</option>
+                <option value="8">8</option>
+              </select>
+            </label>
+            <button id="peer-host-game" class="primary-button" type="button" disabled>Host game</button>
+          </div>
+          <small>Game advertisements stay inside this private peer session and expire automatically.</small>
+        </div>
+        <div class="peer-presence-panel">
+          <label for="peer-target"><span>Artifact handoff target</span>
+            <select id="peer-target"><option value="">No negotiated peer</option></select>
+          </label>
+          <strong>Presence</strong>
+          <ul id="peer-presence"><li>No live presence evidence.</li></ul>
+        </div>
+        <div class="peer-game-directory">
+          <div class="peer-section-heading">
+            <strong>Game sessions</strong>
+            <span id="peer-game-count">0 advertised</span>
+          </div>
+          <div id="peer-game-sessions" class="peer-game-list" aria-live="polite">
+            <p class="peer-empty">Join a peer session to discover hosted games.</p>
+          </div>
+          <small>Joining keeps the existing PeerJS room and passes a generic V13 handoff to the launched local game.</small>
+        </div>
+        <div class="peer-chat-panel">
+          <strong>Lobby chat</strong>
+          <ol id="peer-chat-log" class="peer-chat-log" aria-live="polite">
+            <li>No lobby messages yet.</li>
+          </ol>
+          <form id="peer-chat-form" class="peer-chat-form">
+            <label class="sr-only" for="peer-chat-input">Lobby message</label>
+            <input id="peer-chat-input" type="text" maxlength="600" autocomplete="off" placeholder="Message this private lobby" disabled>
+            <button id="peer-chat-send" class="quiet-button" type="submit" disabled>Send</button>
+          </form>
+        </div>
+        <div class="peer-offer-panel">
+          <strong>Validated inbound offers</strong>
+          <ul id="peer-offers"><li>No validated inbound artifact offers.</li></ul>
+          <small>Offers carry metadata/capability only. V13Hub does not persist or execute remote bytes.</small>
+        </div>
+      </div>
+    </section>
+
+    <section class="library" id="library" aria-labelledby="library-title">
+      <header class="library-heading">
+        <div>
+          <p class="eyebrow">Index / live view</p>
+          <h2 id="library-title">Artifact field</h2>
+        </div>
+        <div class="library-heading-tools">
+          <p id="result-summary" class="result-summary" role="status" aria-live="polite">Loading catalog…</p>
+          <fieldset class="view-switch">
+            <legend class="sr-only">Artifact layout</legend>
+            <button type="button" data-view="grid" aria-pressed="true">Grid</button>
+            <button type="button" data-view="list" aria-pressed="false">Ledger</button>
+          </fieldset>
+        </div>
+      </header>
+
+      <section class="discovery-deck" aria-label="Evidence and topic discovery">
+        <div class="evidence-ladder-panel">
+          <div class="deck-heading">
+            <div><p class="panel-index">EVIDENCE LADDER</p><h3>What the field can actually prove</h3></div>
+            <p>Stages never collapse into one confidence score.</p>
+          </div>
+          <div id="evidence-ladder" class="evidence-ladder" aria-live="polite"></div>
+        </div>
+        <div class="topic-panel">
+          <div class="deck-heading">
+            <div><p class="panel-index">TOPIC SIGNALS</p><h3>Traverse recorded tags</h3></div>
+            <fieldset class="tag-mode">
+              <legend class="sr-only">Topic matching mode</legend>
+              <button id="tag-mode-any" type="button" aria-pressed="true">Any</button>
+              <button id="tag-mode-all" type="button" aria-pressed="false">All</button>
+              <button id="clear-topics" type="button" disabled>Clear</button>
+            </fieldset>
+          </div>
+          <nav id="topic-filters" class="topic-filters" aria-label="Most common recorded topics"></nav>
+        </div>
+      </section>
+
+      <fieldset class="command-deck" aria-label="Search and filter artifacts">
+        <label class="search-field" for="search">
+          <span>Search</span>
+          <input id="search" type="search" autocomplete="off" spellcheck="false" placeholder="title · capability · tag · id · revision · path">
+        </label>
+        <label for="kind-filter"><span>Kind</span><select id="kind-filter"><option value="">All kinds</option></select></label>
+        <label for="availability-filter"><span>Health</span><select id="availability-filter"><option value="">All states</option></select></label>
+        <label for="evidence-filter"><span>Evidence</span><select id="evidence-filter"><option value="">All evidence</option></select></label>
+        <label for="origin-filter"><span>Origin</span><select id="origin-filter"><option value="">All origins</option><option value="catalog">Catalog</option><option value="import">Local import</option></select></label>
+        <label for="capability-filter"><span>Peer basis</span><select id="capability-filter"><option value="">All peer bases</option><option value="declared-peer">Declared capability</option><option value="legacy-peer">Legacy tag signal</option><option value="none">No peer signal</option></select></label>
+        <label for="sort-filter">
+          <span>Sort</span>
+          <select id="sort-filter">
+            <option value="recent">Recent evidence</option>
+            <option value="evidence">Evidence strength</option>
+            <option value="title">Title A–Z</option>
+            <option value="health">Health state</option>
+          </select>
+        </label>
+        <button id="reset-filters" class="quiet-button" type="button">Reset</button>
+      </fieldset>
+
+      <section class="collection-strip" aria-label="Local collection controls">
+        <div>
+          <strong>Local collection</strong>
+          <span id="collection-copy">No saved records yet.</span>
+        </div>
+        <div class="collection-actions">
+          <button id="collection-access" class="quiet-button" type="button">Enable saving</button>
+          <button id="import-trigger" class="quiet-button" type="button">Select local JSON</button>
+          <input id="local-import" type="file" accept="application/json,.json" hidden>
+          <button id="export-collection" class="quiet-button" type="button">Export</button>
+          <button id="clear-collection" class="quiet-button danger" type="button">Clear</button>
+        </div>
+      </section>
+
+      <section id="import-review" class="import-review" aria-labelledby="import-review-title" hidden>
+        <div>
+          <p class="panel-index">LOCAL IMPORT / STAGED</p>
+          <h3 id="import-review-title">Review before adding</h3>
+          <p id="import-review-copy"></p>
+          <ul id="import-review-items"></ul>
+        </div>
+        <div class="import-review-actions">
+          <button id="confirm-import" class="primary-button" type="button">Add metadata to collection</button>
+          <button id="cancel-import" class="quiet-button" type="button">Discard staged import</button>
+        </div>
+      </section>
+
+      <div class="library-layout">
+        <div>
+          <div id="catalog" class="artifact-grid" aria-live="polite" aria-busy="true"></div>
+          <p id="empty" class="empty" hidden>No records match this view.</p>
+        </div>
+
+        <div id="inspector-backdrop" class="inspector-backdrop" aria-hidden="true" hidden></div>
+        <aside id="inspector" class="inspector" role="dialog" aria-modal="true" aria-labelledby="inspector-title" tabindex="-1" hidden>
+          <header class="inspector-head">
+            <div>
+              <p class="eyebrow">Object inspector</p>
+              <h2 id="inspector-title">Artifact</h2>
+            </div>
+            <button id="close-inspector" class="icon-button" type="button" aria-label="Close artifact inspector">×</button>
+          </header>
+          <div id="inspector-content"></div>
+        </aside>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <p><strong>V13Hub</strong> writes collection state only after explicit local opt-in. Selected files are not uploaded or fetched remotely.</p>
+    <p id="runtime-footer">Catalog not loaded · peer proof unavailable</p>
+  </footer>
+
+  <div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
+  <script type="module" src="./app.js"></script>
+</body>
+</html>
