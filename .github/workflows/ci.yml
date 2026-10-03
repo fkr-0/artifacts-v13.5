@@ -1,0 +1,53 @@
+name: V13.5 qualification
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  qualify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout V13.5
+        uses: actions/checkout@v4
+
+      - name: Checkout canonical artifact portfolio
+        uses: actions/checkout@v4
+        with:
+          repository: fkr-0/artifact-lab-pages
+          ref: 97c026b77e6dc26ed00e93a74e36d1540be84db1
+          path: .deps/artifacts
+          token: \${{ secrets.ARTIFACT_SOURCE_TOKEN || github.token }}
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+
+      - name: Model and contract tests
+        run: npm test
+
+      - name: Strict release assembly
+        env:
+          ARTIFACTS_SOURCE_ROOT: \${{ github.workspace }}/.deps/artifacts
+        run: npm run release:check
+
+      - name: Install browser smoke runtime
+        run: |
+          npm install --no-save --package-lock=false playwright@1.60.0
+          npx playwright install --with-deps chromium
+
+      - name: Browser smoke
+        run: |
+          CHROMIUM_BIN="$(node -e "console.log(require('playwright').chromium.executablePath())")"
+          CHROMIUM_BIN="$CHROMIUM_BIN" node tests/qualification/browser-smoke.mjs dist
+
+      - name: Upload qualified static release
+        uses: actions/upload-artifact@v4
+        with:
+          name: artifacts-v13.5-static
+          path: dist/
+          if-no-files-found: error
