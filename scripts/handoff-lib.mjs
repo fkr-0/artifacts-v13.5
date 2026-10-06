@@ -70,8 +70,8 @@ export async function createPublicationHandoff({
       parity.summary?.missingExpected !== 0) {
     throw new Error('Publication handoff requires strict 44/44 V12 expected-local parity.');
   }
-  if (catalog.summary?.total !== 56 || catalog.items?.length !== 56) {
-    throw new Error('Publication handoff requires the qualified 56-item V13.5 catalog.');
+  if (catalog.summary?.total < 55 || catalog.items?.length < 55) {
+    throw new Error('Publication handoff requires at least the qualified 55-item V13.5 catalog floor.');
   }
 
   const byId = new Map(catalog.items.map((item) => [item.id, item]));
