@@ -4,6 +4,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import test from 'node:test';
 import {
+  assertCanonicalSourceRevision,
   assertCleanTrackedStatus,
   createPublicationHandoff,
   HANDOFF_SCHEMA,
@@ -14,6 +15,34 @@ test('handoff refuses tracked dirty state', () => {
   assert.throws(
     () => assertCleanTrackedStatus(' M scripts/build.mjs\n'),
     /clean tracked working tree/,
+  );
+});
+
+test('canonical source revision records exact or descendant source checkouts', () => {
+  const pinnedRevision = '1'.repeat(40);
+  assert.equal(
+    assertCanonicalSourceRevision({
+      pinnedRevision,
+      actualRevision: pinnedRevision,
+      pinnedIsAncestor: true,
+    }).mode,
+    'exact',
+  );
+  assert.equal(
+    assertCanonicalSourceRevision({
+      pinnedRevision,
+      actualRevision: '2'.repeat(40),
+      pinnedIsAncestor: true,
+    }).mode,
+    'descendant',
+  );
+  assert.throws(
+    () => assertCanonicalSourceRevision({
+      pinnedRevision,
+      actualRevision: '3'.repeat(40),
+      pinnedIsAncestor: false,
+    }),
+    /not the pinned revision or its descendant/,
   );
 });
 
@@ -51,7 +80,7 @@ test('handoff records deployment owner, parity and evidence hashes', async () =>
   }
 
   const catalog = {
-    summary: { total: 56, verified: 2, provisional: 44, sourceOnly: 8 },
+    summary: { total: 55, verified: 2, provisional: 44, sourceOnly: 8 },
     superset: {
       replaces: ['app-hub-v12', 'app-hub-v13'],
       currentNativeAdded: ['revealive'],
@@ -66,7 +95,7 @@ test('handoff records deployment owner, parity and evidence hashes', async () =>
         url: '/artifacts/revealive/0.1.0/index.html',
         deployment: { revision: '7'.repeat(40) },
       },
-      ...Array.from({ length: 53 }, (_, index) => ({ id: 'fixture-' + index })),
+      ...Array.from({ length: 52 }, (_, index) => ({ id: 'fixture-' + index })),
     ],
   };
   const parity = {
@@ -91,7 +120,7 @@ test('handoff records deployment owner, parity and evidence hashes', async () =>
     generatedAt: '2026-10-03T00:00:00.000Z',
   });
   assert.equal(handoff.schemaVersion, HANDOFF_SCHEMA);
-  assert.equal(handoff.release.catalogItems, 56);
+  assert.equal(handoff.release.catalogItems, 55);
   assert.equal(handoff.release.stagedV12Local, 44);
   assert.equal(handoff.deploymentOwner.repository, 'fkr-0/artifact-lab-pages');
   assert.equal(handoff.deploymentOwner.site, 'artifacts.fkr.dev');

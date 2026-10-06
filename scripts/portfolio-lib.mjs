@@ -1,7 +1,7 @@
 import { execFile } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import { mkdir, readFile, readdir, rm, stat, writeFile } from 'node:fs/promises';
-import { dirname, join, posix, relative, resolve, sep } from 'node:path';
+import { basename, dirname, join, posix, relative, resolve, sep } from 'node:path';
 import { promisify } from 'node:util';
 
 const execFileAsync = promisify(execFile);
@@ -14,6 +14,17 @@ export const MANIFEST_SCHEMA = 'artifacts-v13.5/asset-manifest-v1';
 const EXPECTED_AVAILABILITY = new Set(['provisional', 'verified']);
 const MAX_FILES_PER_ROUTE = 1000;
 const MAX_BYTES_PER_ROUTE = 128 * 1024 * 1024;
+const RELEASE_EXCLUDED_NAMES = new Set([
+  '.git',
+  'node_modules',
+  'dist',
+  'build',
+  'coverage',
+  '.cache',
+  '.vite',
+  'test-results',
+  'playwright-report',
+]);
 
 async function exists(path) {
   try { await stat(path); return true; }
@@ -21,6 +32,33 @@ async function exists(path) {
 }
 
 function normalizeSlashes(value) { return value.split(sep).join('/'); }
+
+function excludedByPattern(relativePath, patterns = []) {
+  const normalized = normalizeSlashes(relativePath);
+  return patterns.some((pattern) => {
+    const value = normalizeSlashes(String(pattern));
+    if (value.endsWith('/**')) {
+      return normalized === value.slice(0, -3) || normalized.startsWith(value.slice(0, -2));
+    }
+    if (!value.includes('*')) return normalized === value;
+    const expression = new RegExp(
+      '^' + value.split('*')
+        .map((part) => part.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'))
+        .join('.*') + '$',
+    );
+    return expression.test(normalized);
+  });
+}
+
+function safeManifestPath(value, label) {
+  const normalized = normalizeSlashes(String(value || '')).replace(/^\.\/+/, '');
+  if (!normalized ||
+      normalized.startsWith('/') ||
+      normalized.split('/').some((part) => !part || part === '.' || part === '..')) {
+    throw new Error(label + ' must stay within the release root: ' + value);
+  }
+  return normalized;
+}
 
 export function routePath(url) {
   if (typeof url !== 'string' || !url.trim()) return null;
@@ -160,8 +198,12 @@ async function fileEvidence(path) {
 async function copyBoundedDirectory(sourceRoot, targetRoot, {
   maxFiles = 2000,
   maxBytes = 256 * 1024 * 1024,
+  exclude = [],
 } = {}) {
-  const files = await listFiles(sourceRoot);
+  const files = (await listFiles(sourceRoot)).filter((file) => {
+    if (file.split('/').some((part) => RELEASE_EXCLUDED_NAMES.has(part))) return false;
+    return !excludedByPattern(file, exclude);
+  });
   if (files.length > maxFiles) {
     throw new Error('Compiled artifact exceeds file ceiling: ' + sourceRoot);
   }
@@ -177,6 +219,39 @@ async function copyBoundedDirectory(sourceRoot, targetRoot, {
     await writeFile(target, contents);
   }
   return { files, bytes };
+}
+
+async function copyBoundedReleaseSource(sourceRoot, targetRoot, {
+  entrypoint,
+  exclude = [],
+  maxFiles = 2000,
+  maxBytes = 256 * 1024 * 1024,
+} = {}) {
+  const info = await stat(sourceRoot);
+  if (info.isDirectory()) {
+    return copyBoundedDirectory(sourceRoot, targetRoot, { maxFiles, maxBytes, exclude });
+  }
+  if (!info.isFile()) throw new Error('Release source is not a regular file or directory: ' + sourceRoot);
+
+  const targetFile = safeManifestPath(entrypoint || basename(sourceRoot), 'release.entrypoint');
+  if (RELEASE_EXCLUDED_NAMES.has(basename(targetFile)) || excludedByPattern(targetFile, exclude)) {
+    throw new Error('Release entrypoint is excluded by the release contract: ' + targetFile);
+  }
+  const contents = await readFile(sourceRoot);
+  if (contents.byteLength > maxBytes) throw new Error('Compiled artifact exceeds byte ceiling: ' + sourceRoot);
+  await mkdir(dirname(join(targetRoot, targetFile)), { recursive: true });
+  await writeFile(join(targetRoot, targetFile), contents);
+  return { files: [targetFile], bytes: contents.byteLength };
+}
+
+async function missingExpectedReleaseFiles(stageRoot, manifest, entrypoint) {
+  const expected = new Set([entrypoint, ...(manifest.verify?.expectedFiles || [])]);
+  const missing = [];
+  for (const file of expected) {
+    const relativePath = safeManifestPath(file, 'verify.expectedFiles');
+    if (!(await exists(join(stageRoot, relativePath)))) missing.push(relativePath);
+  }
+  return missing;
 }
 
 async function gitHead(path) {
@@ -249,11 +324,31 @@ async function stageCurrentNativeAdditions({
 
     if (item.buildMode === 'none' && manifest) {
       const sourcePath = join(sourceRoot, manifest.source?.path || item.id);
-      const releaseEntrypoint = manifest.release?.entrypoint || 'index.html';
+      const releaseSource = manifest.release?.path
+        ? join(sourcePath, safeManifestPath(manifest.release.path, item.id + ': release.path'))
+        : sourcePath;
+      const releaseEntrypoint = safeManifestPath(
+        manifest.release?.entrypoint || (manifest.source?.kind === 'file' ? basename(sourcePath) : 'index.html'),
+        item.id + ': release.entrypoint',
+      );
       const version = manifest.version || item.version || '0.0.0-dev';
-      if (await exists(join(sourcePath, releaseEntrypoint))) {
+      const sourceInfo = await stat(releaseSource).catch(() => null);
+      const entrypointPath = sourceInfo?.isFile() ? releaseSource : join(releaseSource, releaseEntrypoint);
+      if (sourceInfo && await exists(entrypointPath)) {
         const releaseRoot = join(outputRoot, 'artifacts', item.id, version);
-        const staged = await copyBoundedDirectory(sourcePath, releaseRoot);
+        const staged = await copyBoundedReleaseSource(releaseSource, releaseRoot, {
+          entrypoint: releaseEntrypoint,
+          exclude: manifest.release?.exclude || [],
+        });
+        const missingFiles = await missingExpectedReleaseFiles(releaseRoot, manifest, releaseEntrypoint);
+        if (missingFiles.length) {
+          await rm(releaseRoot, { recursive: true, force: true });
+          missing.push({
+            id: item.id,
+            reason: 'static release is missing expected files: ' + missingFiles.join(', '),
+          });
+          continue;
+        }
         const route = posix.join('artifacts', item.id, version, releaseEntrypoint);
         items.push({
           ...item,
@@ -294,14 +389,19 @@ async function stageCurrentNativeAdditions({
 
     const buildCwd = manifest.build?.cwd || manifest.source?.path || item.id;
     const buildOutput = manifest.build?.output;
-    const releaseEntrypoint = manifest.release?.entrypoint || 'index.html';
+    const releaseEntrypoint = safeManifestPath(
+      manifest.release?.entrypoint || 'index.html',
+      item.id + ': release.entrypoint',
+    );
     const version = manifest.version || item.version || '0.0.0-dev';
     if (!buildOutput) {
       missing.push({ id: item.id, reason: 'compile manifest has no build output' });
       continue;
     }
     const compiledRoot = join(sourceRoot, buildCwd, buildOutput);
-    if (!(await exists(join(compiledRoot, releaseEntrypoint)))) {
+    const compiledInfo = await stat(compiledRoot).catch(() => null);
+    const compiledEntrypointPath = compiledInfo?.isFile() ? compiledRoot : join(compiledRoot, releaseEntrypoint);
+    if (!compiledInfo || !(await exists(compiledEntrypointPath))) {
       missing.push({ id: item.id, reason: 'compiled release output is missing' });
       items.push({
         ...item,
@@ -311,7 +411,19 @@ async function stageCurrentNativeAdditions({
     }
 
     const releaseRoot = join(outputRoot, 'artifacts', item.id, version);
-    const staged = await copyBoundedDirectory(compiledRoot, releaseRoot);
+    const staged = await copyBoundedReleaseSource(compiledRoot, releaseRoot, {
+      entrypoint: releaseEntrypoint,
+      exclude: manifest.release?.exclude || [],
+    });
+    const missingFiles = await missingExpectedReleaseFiles(releaseRoot, manifest, releaseEntrypoint);
+    if (missingFiles.length) {
+      await rm(releaseRoot, { recursive: true, force: true });
+      missing.push({
+        id: item.id,
+        reason: 'compiled release is missing expected files: ' + missingFiles.join(', '),
+      });
+      continue;
+    }
     const route = posix.join('artifacts', item.id, version, releaseEntrypoint);
     const deployed = {
       ...item,

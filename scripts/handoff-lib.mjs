@@ -25,6 +25,29 @@ export function assertCleanTrackedStatus(status) {
   }
 }
 
+export function assertCanonicalSourceRevision({
+  pinnedRevision,
+  actualRevision,
+  pinnedIsAncestor,
+} = {}) {
+  if (!/^[0-9a-f]{40}$/iu.test(String(pinnedRevision || ''))) {
+    throw new Error('Canonical source pin must be a full 40-character Git revision.');
+  }
+  if (!/^[0-9a-f]{40}$/iu.test(String(actualRevision || ''))) {
+    throw new Error('Canonical source checkout must resolve to a full 40-character Git revision.');
+  }
+  if (pinnedRevision === actualRevision) {
+    return { mode: 'exact', pinnedRevision, actualRevision };
+  }
+  if (!pinnedIsAncestor) {
+    throw new Error(
+      'Canonical source checkout ' + actualRevision +
+      ' is not the pinned revision or its descendant (' + pinnedRevision + ').',
+    );
+  }
+  return { mode: 'descendant', pinnedRevision, actualRevision };
+}
+
 async function readJson(path) {
   return JSON.parse(await readFile(path, 'utf8'));
 }

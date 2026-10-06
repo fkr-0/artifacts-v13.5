@@ -15,6 +15,10 @@ test('final catalog replaces the V12 hub and stages current-native compiled addi
   await writeFile(join(source, 'meme-lab', 'meme-lab.html'), '<title>Meme</title>');
   await mkdir(join(source, 'revealive', 'dist'), { recursive: true });
   await writeFile(join(source, 'revealive', 'dist', 'index.html'), '<title>Revealive</title>');
+  await mkdir(join(source, 'quiz'), { recursive: true });
+  await writeFile(join(source, 'quiz', 'index.html'), '<title>Quiz</title><script src="app.js"></script>');
+  await writeFile(join(source, 'quiz', 'app.js'), 'console.log("quiz");');
+  await writeFile(join(source, 'quiz', 'artifact.json'), '{"private":"release metadata"}');
 
   await mkdir(join(hub, 'src', 'ui'), { recursive: true });
   await mkdir(join(hub, 'src', 'lib'), { recursive: true });
@@ -69,6 +73,23 @@ test('final catalog replaces the V12 hub and stages current-native compiled addi
         git: { revision: null, changedAt: null, basis: 'source', path: 'revealive' },
       },
       {
+        id: 'quiz',
+        version: '0.1.0',
+        title: 'Quiz',
+        description: 'Static quiz',
+        kind: 'application',
+        status: 'experimental',
+        required: true,
+        tags: ['quiz'],
+        sourceKind: 'directory',
+        gitMode: 'root',
+        buildMode: 'none',
+        releaseKind: 'directory',
+        availability: 'source-only',
+        url: '/quiz/index.html',
+        git: { revision: null, changedAt: null, basis: 'source', path: 'quiz' },
+      },
+      {
         id: 'app-hub-v13',
         title: 'Old V13 hub',
         buildMode: 'assemble',
@@ -79,6 +100,14 @@ test('final catalog replaces the V12 hub and stages current-native compiled addi
     ],
   };
   const nativeManifests = {
+    quiz: {
+      id: 'quiz',
+      version: '0.1.0',
+      source: { kind: 'directory', path: 'quiz', git: { mode: 'root' } },
+      build: { mode: 'none' },
+      release: { entrypoint: 'index.html', exclude: ['artifact.json'] },
+      verify: { expectedFiles: ['index.html', 'app.js'] },
+    },
     revealive: {
       id: 'revealive',
       version: '0.1.0',
@@ -99,7 +128,7 @@ test('final catalog replaces the V12 hub and stages current-native compiled addi
   });
 
   const ids = result.deploymentCatalog.items.map((item) => item.id);
-  assert.deepEqual(ids.sort(), ['app-hub-v13.5', 'meme-lab', 'revealive'].sort());
+  assert.deepEqual(ids.sort(), ['app-hub-v13.5', 'meme-lab', 'quiz', 'revealive'].sort());
   assert.equal(ids.includes('app-hub-v12'), false);
   assert.equal(ids.includes('app-hub-v13'), false);
 
@@ -107,6 +136,15 @@ test('final catalog replaces the V12 hub and stages current-native compiled addi
   assert.equal(revealive.availability, 'verified');
   assert.equal(revealive.url, '/artifacts/revealive/0.1.0/index.html');
   assert.match(await readFile(join(output, 'artifacts/revealive/0.1.0/index.html'), 'utf8'), /Revealive/);
+
+  const quiz = result.deploymentCatalog.items.find((item) => item.id === 'quiz');
+  assert.equal(quiz.availability, 'verified');
+  assert.equal(quiz.url, '/artifacts/quiz/0.1.0/index.html');
+  assert.match(await readFile(join(output, 'artifacts/quiz/0.1.0/app.js'), 'utf8'), /quiz/);
+  await assert.rejects(
+    readFile(join(output, 'artifacts/quiz/0.1.0/artifact.json'), 'utf8'),
+    { code: 'ENOENT' },
+  );
 
   const self = result.deploymentCatalog.items.find((item) => item.id === 'app-hub-v13.5');
   assert.equal(self.url, '/index.html');

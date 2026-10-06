@@ -22,7 +22,13 @@ The current source authority is the Artifact Lab repository:
 - local development default: ~/work/code/artifacts
 - override: ARTIFACTS_SOURCE_ROOT
 
-The pin is intentional. Updating the source revision is a reviewed release change, not ambient CI drift. CI checks out submodules recursively, builds pinned Revealive first, and then runs the V13.5 assembler against that prepared source tree.
+The pin is intentional. Updating the source revision is a reviewed release
+change, not ambient CI drift. The handoff records both this qualification pin
+and the actual Artifact Lab checkout revision. The actual checkout must be the
+pin or its descendant; Artifact Lab's publication adapter additionally rejects
+descendant changes outside the reviewed integration-only path set. CI checks
+out submodules recursively, builds pinned Revealive first, and then runs the
+V13.5 assembler against that prepared source tree.
 
 If artifact-lab-pages is private, CI requires an ARTIFACT_SOURCE_TOKEN secret with read access. The default repository token may be sufficient only when GitHub grants access to that repository.
 
