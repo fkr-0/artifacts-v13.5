@@ -246,6 +246,32 @@ async function stageCurrentNativeAdditions({
 
   for (const item of candidates) {
     const manifest = nativeManifests[item.id] || null;
+
+    if (item.buildMode === 'none' && manifest) {
+      const sourcePath = join(sourceRoot, manifest.source?.path || item.id);
+      const releaseEntrypoint = manifest.release?.entrypoint || 'index.html';
+      const version = manifest.version || item.version || '0.0.0-dev';
+      if (await exists(join(sourcePath, releaseEntrypoint))) {
+        const releaseRoot = join(outputRoot, 'artifacts', item.id, version);
+        const staged = await copyBoundedDirectory(sourcePath, releaseRoot);
+        const route = posix.join('artifacts', item.id, version, releaseEntrypoint);
+        items.push({
+          ...item,
+          availability: 'verified',
+          url: '/' + route,
+          receipt: { version, files: staged.files.length, generatedAt: null },
+          deployment: { state: 'staged', routePath: route, sourceKind: 'current-native-static' },
+        });
+        routes.push({
+          id: item.id, url: '/' + route, path: route,
+          state: 'staged', classification: 'current-native', sourceKind: 'current-native-static',
+        });
+        continue;
+      }
+      missing.push({ id: item.id, reason: 'static source entrypoint is missing' });
+      continue;
+    }
+
     if (item.buildMode !== 'compile' || !manifest) {
       missing.push({ id: item.id, reason: 'current-native addition has no supported compile manifest' });
       items.push({
