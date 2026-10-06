@@ -18,7 +18,7 @@ jobs:
         uses: actions/checkout@v5
         with:
           repository: fkr-0/artifact-lab-pages
-          ref: 97c026b77e6dc26ed00e93a74e36d1540be84db1
+          ref: 6e6480e0295ae2ca7a05ee11e641ed2b518aa4f6
           path: .deps/artifacts
           submodules: recursive
           fetch-depth: 0

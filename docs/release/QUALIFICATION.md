@@ -18,7 +18,7 @@ A release candidate is qualified only when all of these hold:
 The current source authority is the Artifact Lab repository:
 
 - repository: fkr-0/artifact-lab-pages
-- qualification pin: 97c026b77e6dc26ed00e93a74e36d1540be84db1
+- qualification pin: 6e6480e0295ae2ca7a05ee11e641ed2b518aa4f6
 - local development default: ~/work/code/artifacts
 - override: ARTIFACTS_SOURCE_ROOT
 
@@ -54,4 +54,4 @@ V12 is the regression floor, not the final catalog ceiling. The final V13.5 cata
 - adds one verified app-hub-v13.5 self-record at /index.html;
 - adds current native artifacts absent from V12 when their declared release can be staged.
 
-At the current canonical source pin, Revealive is the post-V12 compiled addition, producing a 56-item final catalog.
+At the current canonical source pin, Revealive (compiled) and the Dienstrecht quiz (static) are post-V12 additions alongside PeerJS Lobby Share, producing a 58-item final catalog.

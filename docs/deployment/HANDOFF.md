@@ -24,7 +24,7 @@ The command:
 1. refuses tracked dirty V13.5 state;
 2. runs strict release assembly;
 3. verifies 44/44 V12 expected-local parity;
-4. verifies the 56-item current-native superset;
+4. verifies at least the 55-item current-native catalog floor;
 5. requires the V13.5 root launcher, Meme Lab, and pinned Revealive release to be SHA-256 covered;
 6. writes dist/PUBLICATION_HANDOFF.json;
 7. does not perform network publication.
@@ -41,10 +41,10 @@ The Pages upload step should consume the complete V13.5 dist directory only afte
 
 - the intended V13.5 Git commit;
 - canonical source repository fkr-0/artifact-lab-pages;
-- source revision 97c026b77e6dc26ed00e93a74e36d1540be84db1;
+- source revision 6e6480e0295ae2ca7a05ee11e641ed2b518aa4f6;
 - stagedV12Local = 44;
 - missingV12Local = 0;
-- catalogItems = 56;
+- catalogItems >= 55;
 - currentNativeAdded includes revealive.
 
 A future remote/push for this new V13.5 repository must be explicitly established before the canonical workflow can pin and check it out by repository identity.

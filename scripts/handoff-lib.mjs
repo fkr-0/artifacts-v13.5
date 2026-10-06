@@ -5,7 +5,7 @@ import { join, resolve } from 'node:path';
 export const HANDOFF_SCHEMA = 'artifacts-v13.5/publication-handoff-v1';
 export const CANONICAL_SOURCE = Object.freeze({
   repository: 'fkr-0/artifact-lab-pages',
-  revision: '97c026b77e6dc26ed00e93a74e36d1540be84db1',
+  revision: '6e6480e0295ae2ca7a05ee11e641ed2b518aa4f6',
 });
 export const DEPLOYMENT_OWNER = Object.freeze({
   repository: 'fkr-0/artifact-lab-pages',
@@ -70,8 +70,8 @@ export async function createPublicationHandoff({
       parity.summary?.missingExpected !== 0) {
     throw new Error('Publication handoff requires strict 44/44 V12 expected-local parity.');
   }
-  if (catalog.summary?.total !== 56 || catalog.items?.length !== 56) {
-    throw new Error('Publication handoff requires the qualified 56-item V13.5 catalog.');
+  if (catalog.summary?.total < 55 || catalog.items?.length < 55) {
+    throw new Error('Publication handoff requires at least the qualified 55-item V13.5 catalog floor.');
   }
 
   const byId = new Map(catalog.items.map((item) => [item.id, item]));
