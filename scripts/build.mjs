@@ -27,9 +27,9 @@ async function readJson(path) {
 const nativeCatalog = await readJson(resolve(sourceRoot, 'registry/generated/catalog.json'));
 const nativeManifests = {};
 if (nativeCatalog && Array.isArray(nativeCatalog.items)) {
-  const baselineIds = new Set(baseline.items.map((item) => item.id));
   for (const item of nativeCatalog.items) {
-    if (baselineIds.has(item.id) || item.id === 'app-hub-v13') continue;
+    // Compiled baseline releases also need their build/output contracts.
+    if (item.id === 'app-hub-v13') continue;
     const manifest = await readJson(resolve(sourceRoot, 'registry/sources.d', item.id + '.json'))
       || await readJson(resolve(sourceRoot, item.id, 'artifact.json'));
     if (manifest) nativeManifests[item.id] = manifest;

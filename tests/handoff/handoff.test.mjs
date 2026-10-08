@@ -51,6 +51,7 @@ test('handoff records deployment owner, parity and evidence hashes', async () =>
   await mkdir(join(root, 'lib'), { recursive: true });
   await mkdir(join(root, 'meme-lab'), { recursive: true });
   await mkdir(join(root, 'artifacts/revealive/0.1.0'), { recursive: true });
+  await mkdir(join(root, 'git-recipe-book/assets'), { recursive: true });
 
   const files = {
     'index.html': 'hub',
@@ -60,6 +61,9 @@ test('handoff records deployment owner, parity and evidence hashes', async () =>
     'lib/favorites.mjs': 'favorites',
     'meme-lab/meme-lab.html': 'meme',
     'artifacts/revealive/0.1.0/index.html': 'revealive',
+    'git-recipe-book/index.html': '<script src="./assets/main.js"></script><link rel="stylesheet" href="./assets/main.css">',
+    'git-recipe-book/assets/main.js': 'console.log("git recipe");',
+    'git-recipe-book/assets/main.css': 'body{color:black}',
   };
   for (const [path, contents] of Object.entries(files)) {
     await writeFile(join(root, path), contents);
@@ -88,6 +92,7 @@ test('handoff records deployment owner, parity and evidence hashes', async () =>
     items: [
       { id: 'app-hub-v13.5', url: '/index.html' },
       { id: 'meme-lab', url: '/meme-lab/meme-lab.html' },
+      { id: 'git-recipe-book', version: '1.1.0', availability: 'verified', url: '/git-recipe-book/index.html' },
       {
         id: 'revealive',
         version: '0.1.0',
@@ -95,7 +100,7 @@ test('handoff records deployment owner, parity and evidence hashes', async () =>
         url: '/artifacts/revealive/0.1.0/index.html',
         deployment: { revision: '7'.repeat(40) },
       },
-      ...Array.from({ length: 52 }, (_, index) => ({ id: 'fixture-' + index })),
+      ...Array.from({ length: 51 }, (_, index) => ({ id: 'fixture-' + index })),
     ],
   };
   const parity = {
@@ -105,6 +110,7 @@ test('handoff records deployment owner, parity and evidence hashes', async () =>
     entries: [
       { id: 'app-hub-v13.5', state: 'staged' },
       { id: 'meme-lab', state: 'staged' },
+      { id: 'git-recipe-book', state: 'staged' },
       { id: 'revealive', state: 'staged' },
     ],
   };
@@ -125,6 +131,8 @@ test('handoff records deployment owner, parity and evidence hashes', async () =>
   assert.equal(handoff.deploymentOwner.repository, 'fkr-0/artifact-lab-pages');
   assert.equal(handoff.deploymentOwner.site, 'artifacts.fkr.dev');
   assert.equal(handoff.integration.remotePublicationPerformed, false);
+  assert.equal(handoff.regressions.gitRecipeBook.version, '1.1.0');
+  assert.equal(handoff.regressions.gitRecipeBook.assets, 2);
 
   const persisted = JSON.parse(await readFile(join(root, 'PUBLICATION_HANDOFF.json'), 'utf8'));
   assert.equal(persisted.release.commit, '1'.repeat(40));

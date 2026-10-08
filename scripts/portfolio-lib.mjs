@@ -519,6 +519,49 @@ export async function assemblePortfolio({ baseline, sourceRoot, fallbackRoots = 
       continue;
     }
 
+    // Preserve the legacy public URL, but never serve Vite development HTML
+    // (`src/main.tsx`) in place of the production Git Recipe Book build.
+    if (item.id === 'git-recipe-book') {
+      const manifest = nativeManifests[item.id];
+      if (!manifest || manifest.build?.mode !== 'compile' ||
+          manifest.build?.cwd !== 'git-recipe-book' ||
+          manifest.build?.output !== 'dist' ||
+          manifest.release?.entrypoint !== 'index.html' ||
+          path !== 'git-recipe-book/index.html') {
+        throw new Error('Git Recipe Book requires its reviewed compiled release manifest.');
+      }
+      const compiledRoot = join(source, 'git-recipe-book', 'dist');
+      if (!(await exists(join(compiledRoot, 'index.html')))) {
+        throw new Error('Git Recipe Book compiled dist/index.html is missing; build it before V13.5 publication.');
+      }
+      const targetRoot = join(output, 'git-recipe-book');
+      const staged = await copyBoundedReleaseSource(compiledRoot, targetRoot, {
+        entrypoint: 'index.html', exclude: manifest.release.exclude || [],
+      });
+      const html = await readFile(join(targetRoot, 'index.html'), 'utf8');
+      if (html.includes('src/main.tsx') || !html.includes('src="./assets/') ||
+          !html.includes('href="./assets/')) {
+        throw new Error('Git Recipe Book must stage its compiled JavaScript and CSS entrypoints, not Vite source HTML.');
+      }
+      const missing = await missingExpectedReleaseFiles(targetRoot, manifest, 'index.html');
+      for (const ref of localReferences('git-recipe-book/index.html', Buffer.from(html))) {
+        if (ref.startsWith('git-recipe-book/') && !(await exists(join(output, ref)))) missing.push(ref);
+      }
+      if (!staged.files.some((file) => file.startsWith('assets/') && file.endsWith('.js')) ||
+          !staged.files.some((file) => file.startsWith('assets/') && file.endsWith('.css')) ||
+          missing.length) {
+        throw new Error('Git Recipe Book compiled release is incomplete: ' + missing.join(', '));
+      }
+      entries.push(deploymentRecord(item, 'staged', {
+        sourceKind: 'canonical-compiled',
+        sourceTarget: 'git-recipe-book/dist',
+        runtimeFiles: staged.files.map((file) => 'git-recipe-book/' + file),
+        runtimeBytes: staged.bytes,
+        missingReferences: [],
+      }));
+      continue;
+    }
+
     const selectedRoot = await findSourceRoot(roots, path);
     if (selectedRoot) {
       const cacheKey = selectedRoot.kind + ':' + path;
@@ -609,6 +652,17 @@ export async function assemblePortfolio({ baseline, sourceRoot, fallbackRoots = 
     .filter((item) => item.id !== 'app-hub-v12')
     .map((item) => {
       const entry = entries.find((candidate) => candidate.id === item.id);
+      if (item.id === 'git-recipe-book') {
+        const current = nativeCatalog?.items?.find((candidate) => candidate.id === item.id);
+        return {
+          ...item,
+          availability: 'verified',
+          git: current?.git || item.git,
+          changedAt: current?.changedAt || item.changedAt,
+          receipt: { version: item.version, files: entry.runtimeFiles.length, generatedAt: null },
+          deployment: { state: 'staged', routePath: 'git-recipe-book/index.html', sourceKind: 'canonical-compiled' },
+        };
+      }
       return {
         ...item,
         deployment: { state: entry ? entry.state : 'unknown', routePath: entry ? entry.routePath : null },

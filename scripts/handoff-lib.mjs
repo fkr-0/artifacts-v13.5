@@ -104,12 +104,23 @@ export async function createPublicationHandoff({
   const self = byId.get('app-hub-v13.5');
   const meme = byId.get('meme-lab');
   const revealive = byId.get('revealive');
+  const gitRecipe = byId.get('git-recipe-book');
   if (!self || self.url !== '/index.html') throw new Error('V13.5 self-record is missing or misrouted.');
   if (!meme || meme.url !== '/meme-lab/meme-lab.html') throw new Error('Meme Lab regression route is missing.');
   if (!revealive ||
       revealive.availability !== 'verified' ||
       revealive.url !== '/artifacts/revealive/0.1.0/index.html') {
     throw new Error('Pinned Revealive release is not present as a verified compiled artifact.');
+  }
+
+  if (!gitRecipe || gitRecipe.availability !== 'verified' ||
+      gitRecipe.url !== '/git-recipe-book/index.html' || gitRecipe.version !== '1.1.0') {
+    throw new Error('Git Recipe Book must be a verified compiled baseline artifact.');
+  }
+  const gitRecipeAssets = Object.keys(assets.files || {}).filter((path) => path.startsWith('git-recipe-book/assets/'));
+  if (!gitRecipeAssets.some((path) => path.endsWith('.js')) ||
+      !gitRecipeAssets.some((path) => path.endsWith('.css'))) {
+    throw new Error('Git Recipe Book lacks compiled application JS or CSS.');
   }
 
   const requiredAssets = [
@@ -119,6 +130,7 @@ export async function createPublicationHandoff({
     'lib/discovery.mjs',
     'lib/favorites.mjs',
     'meme-lab/meme-lab.html',
+    'git-recipe-book/index.html',
     'artifacts/revealive/0.1.0/index.html',
     'catalog.json',
     'parity-report.json',
@@ -131,6 +143,9 @@ export async function createPublicationHandoff({
   const routeById = new Map(routes.entries?.map((entry) => [entry.id, entry]) || []);
   if (routeById.get('meme-lab')?.state !== 'staged') {
     throw new Error('Meme Lab route is not staged in the route manifest.');
+  }
+  if (routeById.get('git-recipe-book')?.state !== 'staged') {
+    throw new Error('Git Recipe Book compiled route is not staged.');
   }
   if (routeById.get('revealive')?.state !== 'staged') {
     throw new Error('Revealive route is not staged in the route manifest.');
@@ -162,6 +177,13 @@ export async function createPublicationHandoff({
       sourceOnly: catalog.summary.sourceOnly,
     },
     regressions: {
+      gitRecipeBook: {
+        id: gitRecipe.id,
+        version: gitRecipe.version,
+        url: gitRecipe.url,
+        sha256: assetEvidence['git-recipe-book/index.html'].sha256,
+        assets: gitRecipeAssets.length,
+      },
       memeLab: {
         id: meme.id,
         url: meme.url,

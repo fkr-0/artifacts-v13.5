@@ -18,6 +18,59 @@ test('routePath strips query strings and rejects external routes', () => {
   assert.equal(routePath('https://example.test/tool'), null);
 });
 
+test('Git Recipe Book serves the compiled curriculum at its stable legacy route', async () => {
+  const root = await mkdtemp(join(tmpdir(), 'v13-5-git-recipe-'));
+  const source = join(root, 'source');
+  const dist = join(source, 'git-recipe-book/dist');
+  const output = join(root, 'out');
+  await mkdir(join(dist, 'assets'), { recursive: true });
+  await mkdir(join(source, 'meme-lab'), { recursive: true });
+  await writeFile(join(source, 'meme-lab/meme-lab.html'), '<title>Meme</title>');
+  await writeFile(join(source, 'git-recipe-book/index.html'), '<script type="module" src="./src/main.tsx"></script>');
+  await writeFile(join(dist, 'index.html'),
+    '<link rel="icon" href="data:,"><script type="module" src="./assets/main.js"></script><link rel="stylesheet" href="./assets/main.css">');
+  await writeFile(join(dist, 'assets/main.js'), 'document.querySelector("body").dataset.loaded = "true";');
+  await writeFile(join(dist, 'assets/main.css'), 'body{display:block}');
+  const item = { id: 'git-recipe-book', title: 'Git Recipe Book', version: '1.1.0',
+    availability: 'source-only', sourceKind: 'project', buildMode: 'compile',
+    url: '/git-recipe-book/index.html' };
+  const manifest = { build: { mode: 'compile', cwd: 'git-recipe-book', output: 'dist' },
+    release: { entrypoint: 'index.html' }, verify: { expectedFiles: ['index.html'] } };
+  const result = await assemblePortfolio({ baseline: baseline([meme, item]), sourceRoot: source,
+    nativeManifests: { 'git-recipe-book': manifest }, outputRoot: output, strict: true });
+  const deployed = result.deploymentCatalog.items.find((candidate) => candidate.id === 'git-recipe-book');
+  assert.equal(deployed.availability, 'verified');
+  assert.equal(deployed.url, '/git-recipe-book/index.html');
+  assert.equal(deployed.deployment.sourceKind, 'canonical-compiled');
+  assert.equal(deployed.receipt.files, 3);
+  assert.equal(result.parity.summary.expectedLocal, 1);
+  assert.equal(result.routeManifest.entries.find((entry) => entry.id === 'git-recipe-book').state, 'staged');
+  assert.match(await readFile(join(output, 'git-recipe-book/index.html'), 'utf8'), /assets\/main.js/);
+  const assets = JSON.parse(await readFile(join(output, 'asset-manifest.json'), 'utf8'));
+  assert.match(assets.files['git-recipe-book/assets/main.js'].sha256, /^[a-f0-9]{64}$/u);
+
+  await writeFile(join(dist, 'index.html'), '<script type="module" src="./src/main.tsx"></script>');
+  await assert.rejects(assemblePortfolio({ baseline: baseline([item]), sourceRoot: source,
+    nativeManifests: { 'git-recipe-book': manifest }, outputRoot: output, strict: true }),
+    /compiled JavaScript and CSS entrypoints/);
+});
+
+test('Git Recipe Book refuses missing builds rather than silently shipping Vite source', async () => {
+  const root = await mkdtemp(join(tmpdir(), 'v13-5-git-recipe-missing-'));
+  const source = join(root, 'source');
+  await mkdir(join(source, 'git-recipe-book'), { recursive: true });
+  await writeFile(join(source, 'git-recipe-book/index.html'), '<script src="./src/main.tsx"></script>');
+  const item = { id: 'git-recipe-book', title: 'Git Recipe Book', version: '1.1.0',
+    availability: 'source-only', sourceKind: 'project', buildMode: 'compile',
+    url: '/git-recipe-book/index.html' };
+  await assert.rejects(assemblePortfolio({ baseline: baseline([item]), sourceRoot: source,
+    outputRoot: join(root, 'out'), strict: true }), /compiled release manifest/);
+  await assert.rejects(assemblePortfolio({ baseline: baseline([item]), sourceRoot: source,
+    outputRoot: join(root, 'out'), nativeManifests: { 'git-recipe-book': {
+      build: { mode: 'compile', cwd: 'git-recipe-book', output: 'dist' }, release: { entrypoint: 'index.html' },
+    } }, strict: true }), /compiled dist\/index.html is missing/);
+});
+
 test('provisional local V12 entries are release parity requirements', () => {
   assert.equal(classifyBaselineItem(meme), 'expected-local');
   assert.equal(classifyBaselineItem({ ...meme, id: 'source', availability: 'source-only' }), 'optional-local');
