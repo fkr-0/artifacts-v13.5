@@ -286,6 +286,61 @@ function makeHubSelfRecord() {
   };
 }
 
+
+async function stageEditorialReports(hubRoot, outputRoot) {
+  const manifestPath = join(hubRoot, 'catalog/editorial-reports.json');
+  if (!(await exists(manifestPath))) return { items: [], routes: [] };
+  const descriptor = JSON.parse(await readFile(manifestPath, 'utf8'));
+  if (descriptor.schemaVersion !== 'artifacts-v13.5/editorial-reports-v1' || !Array.isArray(descriptor.reports)) {
+    throw new Error('Invalid V13.5 editorial reports manifest.');
+  }
+  const ids = new Set();
+  const routes = [];
+  const items = [];
+  for (const report of descriptor.reports) {
+    if (!/^[a-z0-9-]+$/u.test(report.id) || ids.has(report.id)) {
+      throw new Error('Invalid or duplicate editorial report ID: ' + report.id);
+    }
+    ids.add(report.id);
+    const source = safeManifestPath(report.source, 'editorial.source');
+    const route = safeManifestPath(report.route, 'editorial.route');
+    if (!route.startsWith('research/') || !route.endsWith('/index.html')) {
+      throw new Error('Editorial report must use a stable /research/<id>/index.html route.');
+    }
+    const contents = await readFile(join(hubRoot, source));
+    if (contents.length > 1024 * 1024) throw new Error('Editorial report exceeds static file limit.');
+    if (!/<!doctype html>/iu.test(contents.toString('utf8', 0, 180))) {
+      throw new Error('Editorial report is not a standalone HTML page: ' + report.id);
+    }
+    await mkdir(dirname(join(outputRoot, route)), { recursive: true });
+    await writeFile(join(outputRoot, route), contents);
+    items.push({
+      id: report.id,
+      version: report.version,
+      title: report.title,
+      description: report.description,
+      kind: 'document',
+      status: 'active',
+      required: false,
+      tags: report.tags,
+      sourceKind: 'file',
+      gitMode: 'root',
+      buildMode: 'none',
+      releaseKind: 'file',
+      availability: 'verified',
+      url: '/' + route,
+      launch: { default: 'newWindow', modes: ['newWindow', 'fullscreen'], sandbox: 'trusted' },
+      changedAt: report.changedAt,
+      git: { revision: null, changedAt: report.changedAt, basis: 'release-build', path: source },
+      receipt: { version: report.version, files: 1, generatedAt: null },
+      deployment: { state: 'staged', routePath: route, sourceKind: 'v13.5-editorial' },
+    });
+    routes.push({ id: report.id, url: '/' + route, path: route,
+      state: 'staged', classification: 'current-native', sourceKind: 'v13.5-editorial' });
+  }
+  return { items, routes };
+}
+
 function standardCatalogSummary(items) {
   return {
     total: items.length,
@@ -538,7 +593,14 @@ export async function assemblePortfolio({ baseline, sourceRoot, fallbackRoots = 
       const staged = await copyBoundedReleaseSource(compiledRoot, targetRoot, {
         entrypoint: 'index.html', exclude: manifest.release.exclude || [],
       });
+      // Preserve a complete reachable asset graph for this V12 compatibility route.
+      // The upstream Git Recipe Book HTML references a favicon absent from its build.
       const html = await readFile(join(targetRoot, 'index.html'), 'utf8');
+      if (hubRoot && /href=["']\.\/favicon\.svg["']/u.test(html) &&
+          !(await exists(join(targetRoot, 'favicon.svg')))) {
+        const icon = await readFile(join(hubRoot, 'src/ui/legacy-route-favicon.svg'));
+        await writeFile(join(targetRoot, 'favicon.svg'), icon);
+      }
       if (html.includes('src/main.tsx') || !html.includes('src="./assets/') ||
           !html.includes('href="./assets/')) {
         throw new Error('Git Recipe Book must stage its compiled JavaScript and CSS entrypoints, not Vite source HTML.');
@@ -648,6 +710,8 @@ export async function assemblePortfolio({ baseline, sourceRoot, fallbackRoots = 
     strict,
   });
 
+  const editorialReports = hubRoot ? await stageEditorialReports(resolve(hubRoot), output) : { items: [], routes: [] };
+
   const deployedBaselineItems = baseline.items
     .filter((item) => item.id !== 'app-hub-v12')
     .map((item) => {
@@ -669,7 +733,7 @@ export async function assemblePortfolio({ baseline, sourceRoot, fallbackRoots = 
       };
     });
   const selfItem = makeHubSelfRecord();
-  const deployedItems = [...deployedBaselineItems, selfItem, ...nativeAdditions.items];
+  const deployedItems = [...deployedBaselineItems, selfItem, ...nativeAdditions.items, ...editorialReports.items];
   const deploymentCatalog = {
     schemaVersion: 'artifacts-v13.5/catalog-v1',
     generatedAt: new Date().toISOString(),
@@ -683,7 +747,7 @@ export async function assemblePortfolio({ baseline, sourceRoot, fallbackRoots = 
     superset: {
       replaces: ['app-hub-v12', 'app-hub-v13'],
       self: selfItem.id,
-      currentNativeAdded: nativeAdditions.items.map((item) => item.id),
+      currentNativeAdded: [...nativeAdditions.items, ...editorialReports.items].map((item) => item.id),
       currentNativeMissing: nativeAdditions.missing,
     },
     items: deployedItems,
@@ -712,6 +776,7 @@ export async function assemblePortfolio({ baseline, sourceRoot, fallbackRoots = 
         sourceKind: 'v13.5-self',
       },
       ...nativeAdditions.routes,
+      ...editorialReports.routes,
     ],
   };
   await writeFile(join(output, 'route-manifest.json'), JSON.stringify(routeManifest, null, 2) + '\n');

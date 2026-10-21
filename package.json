@@ -5,7 +5,7 @@
   "type": "module",
   "description": "Sanitized V12-style artifacts hub with complete portfolio assembly and V13 integrity evidence.",
   "scripts": {
-    "test": "node --test tests/**/*.test.mjs",
+    "test": "node --test tests/**/*.test.mjs tests/*.test.mjs",
     "build": "node scripts/build.mjs --allow-unresolved",
     "release:check": "node scripts/build.mjs",
     "publication:handoff": "node scripts/publication-handoff.mjs"

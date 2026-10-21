@@ -1,0 +1,169 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="dark">
+<meta name="theme-color" content="#0d161a">
+<meta name="description" content="An illustrated field report on Roborock Local Server, TLS trust boundaries, RSA public-key reconstruction, firmware limitations, and the October 2026 eMudhra intermediate CA compromise.">
+<title>Local Cloud, Real TLS — Protocol Field Notes</title>
+<style>
+:root{--bg:#0d161a;--surface:#142126;--raised:#1b2b30;--border:#304449;--fg:#e9ede5;--muted:#a9bbb8;--accent:#f0b77b;--mint:#9fdfc5;--rose:#f4a998;--max:1260px;scroll-behavior:smooth}
+*{box-sizing:border-box}html{scroll-padding-top:90px}body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.7 system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}a{color:var(--mint);text-decoration-thickness:1px;text-underline-offset:4px}a:hover{color:#e7ffe7}a:focus-visible,button:focus-visible{outline:2px solid var(--accent);outline-offset:5px}
+::selection{background:var(--accent);color:var(--bg)}
+.skip{position:absolute;top:-100px;left:12px;z-index:40;background:var(--accent);color:var(--bg);padding:8px 14px}.skip:focus{top:10px}
+.progress{position:fixed;height:3px;top:0;left:0;width:0;background:var(--accent);z-index:30;transition:width .08s linear}
+.top{border-bottom:1px solid var(--border);background:#0d161aea;backdrop-filter:blur(14px);position:sticky;top:0;z-index:20}.topin{max-width:var(--max);margin:auto;display:flex;align-items:center;justify-content:space-between;min-height:62px;padding:0 28px;gap:16px}.brand{font-size:12px;font-weight:800;letter-spacing:.18em;text-transform:uppercase;color:var(--fg);text-decoration:none}.brand span{color:var(--accent)}.topmeta{font:600 11px/1.4 ui-monospace,SFMono-Regular,Consolas,monospace;letter-spacing:.1em;color:var(--muted)}
+.wrap{max-width:var(--max);margin:auto;padding:0 28px}.hero{position:relative;overflow:hidden;padding:93px 0 80px;border-bottom:1px solid var(--border);background:radial-gradient(ellipse at 82% 12%,#3c4f4b88,transparent 41%),radial-gradient(ellipse at 60% 80%,#293c3a55,transparent 55%)}
+.hero:after{content:"";position:absolute;right:-180px;top:-115px;width:690px;height:690px;border:1px solid #5b777155;border-radius:50%;box-shadow:0 0 0 60px #5b77710c,0 0 0 135px #5b77710b;pointer-events:none}
+.eyebrow{font:700 12px/1.4 ui-monospace,Consolas,monospace;text-transform:uppercase;letter-spacing:.16em;color:var(--accent);display:flex;align-items:center;gap:14px}.eyebrow:before{content:"";width:34px;height:1px;background:var(--accent)}
+h1,h2,h3,blockquote{font-family:Georgia,"Times New Roman",serif}h1{font-size:clamp(55px,8.8vw,126px);line-height:.95;letter-spacing:-.055em;margin:30px 0 26px;max-width:880px;font-weight:normal}.hero h1 em{font-weight:normal;color:var(--accent);font-style:italic}.dek{font-size:clamp(18px,2.1vw,23px);line-height:1.52;max-width:790px;color:#d0dbd5;margin:0}.herofoot{display:flex;gap:30px;flex-wrap:wrap;align-items:center;margin-top:36px;color:var(--muted);font-size:13px}.tag{border:1px solid #a8bfac66;color:var(--mint);padding:6px 12px;border-radius:2px;font:700 11px/1.5 ui-monospace,Consolas,monospace;letter-spacing:.09em}.hero-index{position:absolute;right:max(30px,calc((100vw - var(--max)) / 2 + 28px));bottom:46px;font:700 14px ui-monospace,Consolas,monospace;color:#a7b1ad55}
+.article-grid{display:grid;grid-template-columns:242px minmax(0,1fr);gap:70px}.toc{position:sticky;align-self:start;top:92px;padding:46px 0 36px;max-height:calc(100vh - 104px);overflow:auto}.toc-label{color:var(--accent);text-transform:uppercase;letter-spacing:.17em;font:700 11px ui-monospace,Consolas,monospace}.toc a{display:block;text-decoration:none;color:var(--muted);font-size:13px;padding:10px 0;border-bottom:1px solid #31434670;transition:color .2s}.toc a:hover,.toc a.active{color:var(--fg)}.toc a span{display:inline-block;font:700 11px ui-monospace,Consolas,monospace;color:var(--accent);min-width:29px}.toc .fine{font-size:11px;color:#829691;line-height:1.5;margin-top:30px}
+main{min-width:0}.section{padding:77px 0 86px;border-bottom:1px solid var(--border)}.section:first-child{padding-top:83px}.chapter{display:flex;align-items:center;gap:17px;color:var(--accent);font:700 12px ui-monospace,Consolas,monospace;text-transform:uppercase;letter-spacing:.16em}.chapter:after{content:"";height:1px;background:var(--border);flex:1}
+h2{font-weight:normal;font-size:clamp(35px,4.5vw,57px);line-height:1.09;letter-spacing:-.032em;margin:25px 0 23px;max-width:740px}h3{font-size:27px;line-height:1.17;font-weight:normal;margin:45px 0 15px;letter-spacing:-.015em}h4{font-size:12px;font-family:ui-monospace,monospace;text-transform:uppercase;letter-spacing:.14em;color:var(--mint);margin:0 0 13px}
+p{margin:15px 0;color:#cbd6d0}strong{color:var(--fg)}.lead{font-size:20px;line-height:1.63;color:var(--fg);max-width:770px}.callout{border-left:3px solid var(--accent);background:#1a292b;margin:32px 0;padding:23px 27px}.callout p{margin:0}.callout b{color:var(--accent)}
+.insight{font-size:clamp(22px,3vw,34px);border-top:1px solid var(--border);border-bottom:1px solid var(--border);margin:39px 0;padding:34px 0;color:var(--fg);line-height:1.29;font-weight:normal}.insight em{color:var(--accent)}.mini{font-size:12px;color:var(--muted)}.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:35px 0}.metric{border:1px solid var(--border);background:var(--surface);padding:23px 18px}.metric b{display:block;font:normal 41px Georgia,serif;color:var(--accent);line-height:1}.metric span{font-size:12px;color:var(--muted);line-height:1.35;display:block;margin-top:10px}
+.figure{margin:34px 0;padding:26px 25px 24px;border:1px solid #41575a;background:linear-gradient(135deg,#1b3032,#122025);overflow:hidden}.fig-head{font:700 11px ui-monospace,Consolas,monospace;letter-spacing:.15em;text-transform:uppercase;color:var(--accent);margin-bottom:22px}.fig-caption{font-size:12px;color:var(--muted);line-height:1.6;margin-top:18px;border-top:1px solid var(--border);padding-top:14px}
+.flow{display:grid;grid-template-columns:repeat(3,1fr);gap:15px;align-items:stretch}.node{min-height:140px;border:1px solid #4e6668;padding:17px;background:#112226}.node .num{font:700 11px ui-monospace,Consolas,monospace;color:var(--accent);letter-spacing:.1em}.node b{display:block;font-size:17px;margin:20px 0 5px;line-height:1.2}.node small{color:var(--muted);font-size:12px;line-height:1.5;display:block}.flow-connect{grid-column:1/-1;display:flex;justify-content:space-around;color:var(--mint);font:700 16px ui-monospace,Consolas,monospace;letter-spacing:.3em;opacity:.75;margin:-4px 0}.chain{display:grid;grid-template-columns:1fr;gap:4px;max-width:520px;margin:auto;text-align:center}.chain > div{background:#0f2024;padding:13px;border:1px solid #526563}.chain > .arrow{border:0;padding:0;background:transparent;color:var(--accent);font:18px ui-monospace}.chain b{color:var(--fg)}.chain small{display:block;color:var(--muted);font:12px/1.7 ui-monospace,Consolas,monospace}
+.formula{font:20px/1.7 ui-monospace,SFMono-Regular,Consolas,monospace;padding:22px 24px;background:#0a1316;border:1px solid #324a4e;color:var(--mint);overflow:auto;margin:27px 0}.formula small{font-size:12px;color:var(--muted);display:block;line-height:1.6}
+.sequence{margin:26px 0 0;counter-reset:seq;list-style:none;padding:0}.sequence li{counter-increment:seq;display:grid;grid-template-columns:36px 1fr;gap:15px;padding:15px 0;border-bottom:1px solid var(--border);color:#ccd7d0}.sequence li:before{content:counter(seq,decimal-leading-zero);font:700 12px ui-monospace,Consolas,monospace;color:var(--accent);padding-top:3px}
+.tablewrap{overflow-x:auto;border:1px solid var(--border);margin:28px 0;background:#102025}table{width:100%;border-collapse:collapse;min-width:600px;font-size:13px}th{font:700 11px/1.5 ui-monospace,Consolas,monospace;text-transform:uppercase;letter-spacing:.09em;color:var(--accent);text-align:left;background:#1a2b2e}td,th{padding:15px 15px;border-bottom:1px solid #314648;vertical-align:top}tr:last-child td{border-bottom:none}td{color:#c9d5cf}td:first-child{color:#f0f1e9;font-weight:650}.yes{color:var(--mint)}.warn{color:var(--rose)}.unknown{color:var(--accent)}
+.compare{display:grid;grid-template-columns:1fr 1fr;gap:13px;margin:28px 0}.compare>div{padding:22px;background:var(--surface);border:1px solid var(--border)}.compare ul{padding-left:18px;margin:8px 0 0;color:#cbd6d0;font-size:14px}.compare li{margin:7px 0}
+.source-list{counter-reset:sources;list-style:none;padding:0;margin:30px 0}.source-list li{counter-increment:sources;display:grid;grid-template-columns:34px 1fr;gap:14px;border-bottom:1px solid var(--border);padding:14px 0;font-size:14px}.source-list li:before{content:counter(sources,decimal-leading-zero);font:700 12px ui-monospace,Consolas,monospace;color:var(--accent)}.source-list small{display:block;color:var(--muted);margin-top:4px}
+footer{max-width:var(--max);padding:36px 28px 75px;margin:auto;display:flex;justify-content:space-between;gap:18px;color:#91a7a0;font-size:12px}.footline{width:34px;height:1px;background:var(--accent);margin-bottom:15px}
+@media(max-width:880px){.article-grid{display:block}.toc{position:relative;top:auto;padding:25px 0 0;border-bottom:1px solid var(--border);max-height:none}.toc a{display:inline-block;border:0;padding:8px 15px 8px 0}.toc .fine{display:none}.section{padding:60px 0}.hero{padding:75px 0 67px}.hero-index{display:none}}
+@media(max-width:560px){.wrap{padding:0 20px}.topin{padding:0 20px}.topmeta{display:none}.hero{padding:65px 0 52px}.hero h1{font-size:clamp(47px,13vw,74px)}.flow{grid-template-columns:1fr}.flow-connect{display:none}.node{min-height:94px}.node b{margin:10px 0 5px}.grid3{grid-template-columns:1fr}.metric{display:flex;gap:22px;align-items:center}.metric span{margin:0}.compare{grid-template-columns:1fr}.figure{padding:20px 16px}.section{padding:49px 0 58px}footer{padding:25px 20px 55px;display:block}}
+@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}*,*:before,*:after{transition:none!important}}
+@media print{*{color:#171f1c!important}html{color-scheme:light}body{background:#fff}h1{font-size:60px}.top,.toc,.progress{display:none}.article-grid{display:block}.hero{padding:30px 0}.section{break-inside:auto;padding:20px 0 30px}.figure,.callout,.metric,.compare>div,.formula{background:#fff!important;border-color:#888}a{text-decoration:underline}.tablewrap{overflow:visible}table{min-width:0}}
+</style>
+</head>
+<body>
+<a class="skip" href="#content">Skip to report</a><div class="progress" aria-hidden="true" id="reading-progress"></div>
+<header class="top"><div class="topin"><a class="brand" href="#top">FIELD<span> / </span>NOTES</a><div class="topmeta">SYSTEMS · PKI · LOCAL-FIRST ENGINEERING &nbsp; / &nbsp; 2026.10</div></div></header>
+<section id="top" class="hero"><div class="wrap">
+<div class="eyebrow">Protocol study / No. 004</div>
+<h1>Local cloud.<br><em>Real TLS.</em></h1>
+<p class="dek">How a Roborock vacuum can join a self-hosted cloud without rooting, why certificate verification still succeeds, and what the eMudhra CA compromise changes about the trust equation.</p>
+<div class="herofoot"><span class="tag">REVERSE ENGINEERING</span><span>21 October 2026</span><span>Technical field report · 4 chapters</span></div>
+</div><span class="hero-index" aria-hidden="true">001 — 004</span></section>
+<div class="wrap article-grid"><aside class="toc" aria-label="Table of contents">
+<div class="toc-label">Contents</div>
+<a href="#mechanism"><span>01</span> How the repository works</a>
+<a href="#boundaries"><span>02</span> The trust boundaries</a>
+<a href="#firmware"><span>03</span> Modern firmware limits</a>
+<a href="#emudhra"><span>04</span> The eMudhra question</a>
+<a href="#sources"><span>↗</span> Sources &amp; notes</a>
+<p class="fine">An independently written explanation based on the open-source project's technical writeup and public CA incident disclosures. Not an exploit guide or a claim about any particular vacuum's vulnerability.</p>
+</aside>
+<main id="content">
+<section class="section" id="mechanism">
+<div class="chapter">01 / Mechanics</div>
+<h2>How the local server actually works</h2>
+<p class="lead">The project replaces Roborock's cloud-facing control plane with a local HTTPS and MQTT implementation. Its key achievement is to make the vacuum <strong>choose the local server's hostname</strong> before ordinary TLS authentication begins.</p>
+<div class="figure" role="group" aria-label="Three trust phases: local provisioning, TLS authentication, and local service communication">
+<div class="fig-head">Figure 01 · From provisioning to local operation</div>
+<div class="flow"><div class="node"><div class="num">PHASE A / CONFIGURE</div><b>Phone → Vacuum</b><small>Wi-Fi onboarding conveys the region/bootstrap configuration.</small></div><div class="node"><div class="num">PHASE B / VERIFY</div><b>Vacuum → Local HTTPS</b><small>The client checks a real TLS certificate against the <em>chosen</em> hostname.</small></div><div class="node"><div class="num">PHASE C / OPERATE</div><b>Vacuum ⇄ Local cloud</b><small>REST, MQTT and map traffic run against the emulated endpoints.</small></div></div>
+<div class="fig-caption">Trust moves across separate layers. Redirecting packets, authenticating the HTTPS peer, and understanding the Roborock application protocol are three different problems.</div>
+</div>
+<h3>01.1 — Hostname selection precedes certificate validation</h3>
+<p>During supported onboarding flows, a region-derived field is incorporated into a service URL. The project documents a URL/hostname injection technique that directs the vacuum to an operator-controlled domain. The vacuum then requests that hostname, allowing the local endpoint to present an ordinary publicly trusted certificate <strong>for that exact name</strong>.</p>
+<div class="compare"><div><h4>DNS-only rewrite</h4><p>Device requests the genuine Roborock hostname, but DNS sends its TCP connection to a local IP.</p><p class="warn"><strong>Typically fails:</strong> the local server's own-domain certificate does not match the requested Roborock hostname.</p></div><div><h4>Provisioning redirect</h4><p>Device is provisioned to request the operator's own domain; local DNS maps it to the LAN server.</p><p class="yes"><strong>Can succeed:</strong> the certificate matches the hostname the device actually requested.</p></div></div>
+<div class="callout"><p><b>Central distinction.</b> TLS authenticates a peer <em>relative to a hostname</em>. It does not itself prove that the device was authorized to choose that hostname as its vendor cloud endpoint.</p></div>
+<h3>01.2 — Recovering the device's RSA public key</h3>
+<p>The encrypted registration/bootstrap protocol presents another obstacle. Roborock's backend needs the vacuum's RSA public key to construct encrypted replies, yet the public key is not directly exposed in the relevant flow. The vacuum does, however, transmit RSA PKCS#1 v1.5 signatures over known request data.</p>
+<div class="formula">sᵉ ≡ EMSA(msg) (mod n)<br>gcd(s₁ᵉ − EMSA(m₁), s₂ᵉ − EMSA(m₂)) ≈ n
+<small>s = signature; e = public exponent (commonly 65537); n = public modulus. Independent samples may produce n times a removable cofactor.</small></div>
+<p>Because the signature encoding is deterministic and the signed messages are known, multiple signatures constrain the hidden modulus. The implementation can recover and verify a candidate <strong>public</strong> key without extracting the vacuum's private key or breaking RSA's secrecy assumptions.</p>
+<h3>01.3 — Emulating the cloud after registration</h3>
+<ol class="sequence"><li><div><strong>Provision:</strong> set up supported pairing so the device knows where to connect.</div></li><li><div><strong>Connect:</strong> negotiate legitimate TLS with a certificate for the configured hostname.</div></li><li><div><strong>Bootstrap:</strong> use the recovered public key to build the encrypted response expected by firmware.</div></li><li><div><strong>Operate:</strong> route REST, MQTT messages, maps and commands within a local service stack.</div></li></ol>
+<p>For the official smartphone app, the repository documents distinct integration options, including an iOS proxy-assisted flow and an Android app-modification route. That <strong>phone-side trust setup is separate</strong> from the vacuum's own TLS verification.</p>
+<div class="grid3"><div class="metric"><b>HTTPS</b><span>Registration and API-facing service endpoints</span></div><div class="metric"><b>MQTT</b><span>Device messages, commands and events</span></div><div class="metric"><b>LAN</b><span>Local-first operation and map access</span></div></div>
+</section>
+<section class="section" id="boundaries">
+<div class="chapter">02 / Security model</div>
+<h2>What gets bypassed — and what does not</h2>
+<p class="lead">The distinction is not “TLS is broken.” The weakness lies upstream of TLS: <strong>who gets to choose the destination</strong>, and which application protocol assumptions remain enforceable.</p>
+<div class="tablewrap"><table><thead><tr><th>Mechanism</th><th>Role</th><th>Local-server approach</th></tr></thead><tbody>
+<tr><td>DNS resolution</td><td>Maps hostnames to addresses</td><td>Local DNS directs a configured hostname to a LAN address.</td></tr>
+<tr><td>TLS hostname check</td><td>Binds a certificate to the requested name</td><td><span class="yes">Preserved.</span> Use a valid certificate for an operator-controlled name.</td></tr>
+<tr><td>Public CA trust</td><td>Establishes certificate-issuer authority</td><td><span class="yes">Preserved.</span> Subject to the firmware's bundled trust anchors.</td></tr>
+<tr><td>Bootstrap endpoint binding</td><td>Determines the intended cloud service</td><td><span class="warn">Changed.</span> Supported provisioning permits an alternate service endpoint.</td></tr>
+<tr><td>Device RSA private key</td><td>Signs device requests</td><td><span class="yes">Not extracted.</span> Only the public modulus is reconstructed.</td></tr>
+<tr><td>Encrypted bootstrap</td><td>Protects device registration response</td><td>Reimplemented using the reconstructed public key.</td></tr>
+<tr><td>Application commands</td><td>Roborock protocol semantics</td><td>Requires accurate REST and MQTT protocol emulation.</td></tr>
+<tr><td>Certificate pinning</td><td>Restricts acceptance to specific keys</td><td><span class="unknown">Model-dependent.</span> Could prevent this approach.</td></tr>
+</tbody></table></div>
+<blockquote class="insight">The certificate can be <em>perfectly valid</em> while the decision to trust its hostname is architecturally wrong.</blockquote>
+<div class="figure" role="group" aria-label="Certificate verification separates name selection and chain validation"><div class="fig-head">Figure 02 · Two independent questions</div><div class="flow"><div class="node"><div class="num">DECISION 1</div><b>Which hostname?</b><small>Provisioning and device configuration choose the service.</small></div><div class="node"><div class="num">DECISION 2</div><b>Whose certificate?</b><small>PKI validates that hostname and trusted issuer chain.</small></div><div class="node"><div class="num">DECISION 3</div><b>Which protocol?</b><small>Application-layer cryptography and behavior must still match.</small></div></div><div class="fig-caption">A successful TLS handshake proves neither vendor authorization nor compatibility with an application protocol.</div></div>
+</section>
+<section class="section" id="firmware">
+<div class="chapter">03 / Compatibility</div>
+<h2>Firmware is the real boundary</h2>
+<p class="lead">There is no single “Roborock vulnerability” that applies to every model. Firmware families vary in their onboarding format, CA trust store, certificate validation, cloud bootstrap and supported protocol versions.</p>
+<h3>The moving compatibility target</h3>
+<p>The current project README describes support for many modern <strong>v2 protocol</strong> models and greenfield onboarding. Its tested-device list nevertheless identifies specific unsupported Q-series and recent devices. Some older documentation still describes an initial-account-registration requirement; treat that as a documentation-version conflict, not a universal rule.</p>
+<div class="tablewrap"><table><thead><tr><th>Variable</th><th>Possible restriction</th><th>Practical implication</th></tr></thead><tbody>
+<tr><td>Onboarding v1/v2</td><td>Changed region endpoints and data formats</td><td>Older injection or bootstrap assumptions may no longer apply.</td></tr>
+<tr><td>Certificate anchors</td><td>Old or restricted CA bundles</td><td>A valid public certificate might still be rejected.</td></tr>
+<tr><td>Pinning / allowlists</td><td>Certificates or hostnames are constrained</td><td>Self-hosted endpoint substitution may be impossible.</td></tr>
+<tr><td>Application encryption</td><td>Different key exchange or message framing</td><td>Public-key reconstruction alone may not complete pairing.</td></tr>
+<tr><td>Feature completeness</td><td>Cloud-only features remain</td><td>Firmware updates, camera streaming or schedules may be incomplete.</td></tr>
+</tbody></table></div>
+<div class="callout"><p><b>Important correction to early explanations.</b> “Newer firmware is unsupported” is too broad. Project documentation has evolved; check the <a href="https://github.com/Python-roborock/local_roborock_server/blob/main/docs/tested_vacuums.md" target="_blank" rel="noopener noreferrer">live compatibility matrix</a> for model-and-firmware-specific reports.</p></div>
+<p>The project currently lists entry-level Q7/Q10 variants and several recent models as unsupported, while confirming operation on multiple S-series and QRevo devices. These are project-reported outcomes, not independent proof of a security bypass across the fleet.</p>
+</section>
+<section class="section" id="emudhra">
+<div class="chapter">04 / Incident analysis</div>
+<h2>eMudhra changes the issuer, not the protocol</h2>
+<p class="lead">In October 2026, eight eMudhra intermediate CA private keys were reported compromised due to weak key generation. For unprotected clients that still trust an affected chain, a fraudulent certificate could authenticate a hostname the attacker does not own.</p>
+<div class="grid3"><div class="metric"><b>08</b><span>Intermediate CA private keys reported compromised</span></div><div class="metric"><b>17 Oct</b><span>2026 disclosure to browser root programs</span></div><div class="metric"><b>0</b><span>Evidence presented here that a Roborock model accepts such a chain</span></div></div>
+<div class="figure" role="group" aria-label="Certificate trust chain including a compromised intermediate authority"><div class="fig-head">Figure 03 · The public PKI failure mode</div>
+<div class="chain"><div><b>Trusted root CA</b><small>Installed in a client trust store</small></div><div class="arrow">↓ signs</div><div><b>Compromised eMudhra intermediate</b><small>Private signing key no longer exclusive</small></div><div class="arrow">↓ can issue</div><div><b>Fraudulent endpoint certificate</b><small>Subject Alternative Name can match an unrelated hostname</small></div><div class="arrow">↓ only if client still trusts chain</div><div><b>Unprotected HTTPS client</b><small>Subject to revocation, pinning and policy checks</small></div></div>
+<div class="fig-caption">A forged certificate does not automatically redirect traffic. A network-level redirection or interception capability is a separate prerequisite.</div></div>
+<h3>Could it replace Roborock's hostname injection?</h3>
+<p><strong>Conceptually, yes — at the TLS layer.</strong> If an affected firmware trusts a compromised intermediate, lacks effective revocation enforcement and pinning, and is directed to a different server while requesting a genuine vendor hostname, an attacker-controlled endpoint could pass ordinary chain and hostname checks.</p>
+<div class="tablewrap"><table><thead><tr><th>Obstacle</th><th>Self-hosted project</th><th>Compromised trusted CA</th></tr></thead><tbody>
+<tr><td>Original hostname</td><td>Replaced during supported pairing</td><td>Could remain unchanged</td></tr>
+<tr><td>TLS identity</td><td>Legitimate certificate for own domain</td><td>Fraudulent certificate may match vendor name</td></tr>
+<tr><td>Network destination</td><td>Local DNS and configuration</td><td>Still requires an independent interception/redirection position</td></tr>
+<tr><td>RSA bootstrap response</td><td>Public-key reconstruction</td><td><span class="warn">Still unsolved by CA compromise</span></td></tr>
+<tr><td>REST &amp; MQTT semantics</td><td>Locally implemented</td><td><span class="warn">Still required</span></td></tr>
+</tbody></table></div>
+<h3>Why the embedded trust store matters</h3>
+<p>Chrome and Firefox began blocking affected intermediates on 17 October 2026; Mozilla also announced NSS trust-store changes. Embedded clients may not receive browser-style blocklists, and may retain older trust anchors for years. That increases <em>potential</em> exposure — but it does not establish whether any Roborock firmware trusts the relevant CA chain.</p>
+<div class="compare"><div><h4>What is established</h4><ul><li>Eight intermediate private-key compromises were publicly confirmed.</li><li>Browser vendors distributed emergency distrust measures.</li><li>Ordinary TLS chain validation depends on client trust configuration.</li></ul></div><div><h4>What remains unverified</h4><ul><li>Which Roborock trust stores include an affected chain.</li><li>Whether revocation or pinning blocks it on a given model.</li><li>Whether the hypothetical TLS path could complete actual pairing.</li></ul></div></div>
+<div class="callout"><p><b>Conclusion.</b> The original project demonstrates a provisioning trust-boundary problem. The eMudhra incident demonstrates a separate public-PKI trust failure. They can be analyzed together, but one does not prove exploitability of the other on a particular device.</p></div>
+</section>
+<section class="section" id="sources">
+<div class="chapter">Reference desk</div><h2>Primary sources &amp; reading</h2>
+<p>The mechanisms are grounded in the repository author's technical notes; incident dates and browser mitigations are drawn from browser-vendor disclosures. All compatibility statements are snapshots as of 21 October 2026.</p>
+<ol class="source-list">
+<li><div><a href="https://github.com/Python-roborock/local_roborock_server" target="_blank" rel="noopener noreferrer">Roborock Local Server — repository</a><small>Architecture, scope, service features and current support claims.</small></div></li>
+<li><div><a href="https://python-roborock.github.io/local_roborock_server/technical_writeup/" target="_blank" rel="noopener noreferrer">Roborock Local Server — technical writeup</a><small>Hostname-selection weakness, TLS, RSA modulus recovery and messaging protocol.</small></div></li>
+<li><div><a href="https://github.com/Python-roborock/local_roborock_server/blob/main/docs/tested_vacuums.md" target="_blank" rel="noopener noreferrer">Tested vacuums and certificate compatibility</a><small>Model-specific outcomes; consult the latest revision before interpreting firmware support.</small></div></li>
+<li><div><a href="https://blog.mozilla.org/security/2026/10/20/protecting-firefox-users-following-the-compromise-of-emudhra-intermediate-certificates/" target="_blank" rel="noopener noreferrer">Mozilla Security Blog — eMudhra incident</a><small>17 October report; OneCRL response and subsequent NSS update.</small></div></li>
+<li><div><a href="https://blog.google/security/protecting-chrome-and-android-users-from-compromised-emudhra-intermediate-ca-certificates/" target="_blank" rel="noopener noreferrer">Google Security Blog — Chrome/Android response</a><small>Compromised intermediates, insufficient key entropy and CRLSet blocking.</small></div></li>
+<li><div><a href="https://emudhra.com/en/post/certificate-security-incident" target="_blank" rel="noopener noreferrer">eMudhra — official incident statement</a><small>CA operator response and public investigation updates.</small></div></li>
+</ol><p class="mini">Scope: explanatory security analysis only. No key material, fraudulent certificates, or interception tooling are provided. Local-service support and trust-store exposure must be established separately for each model and firmware.</p>
+</section>
+</main></div>
+<footer><div><div class="footline"></div>FIELD / NOTES — Independent systems research<br>Illustrated technical explainer · v1.0</div><div>21 OCTOBER 2026 &nbsp; / &nbsp; BUILT FOR THE ARTIFACT LAB</div></footer>
+<script>
+(() => {
+ const progress = document.querySelector('#reading-progress');
+ const headings = [...document.querySelectorAll('main section[id]')];
+ const links = [...document.querySelectorAll('.toc a')];
+ let scheduled = false;
+ const update = () => {
+   scheduled = false;
+   const max = Math.max(1, document.documentElement.scrollHeight - innerHeight);
+   progress.style.width = Math.min(100, Math.max(0, scrollY/max*100)).toFixed(1)+'%';
+   const current = headings.filter(s => s.getBoundingClientRect().top <= 170).at(-1)?.id;
+   for(const link of links){const active = link.hash.slice(1) === current;link.classList.toggle('active', active);if(active)link.setAttribute('aria-current','location');else link.removeAttribute('aria-current')}
+ };
+ addEventListener('scroll',()=>{if(!scheduled){scheduled=true;requestAnimationFrame(update)}},{passive:true});
+ addEventListener('resize',update); update();
+})();
+</script>
+</body>
+</html>

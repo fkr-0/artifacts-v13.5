@@ -1,0 +1,24 @@
+{
+  "schemaVersion": "artifacts-v13.5/editorial-reports-v1",
+  "reports": [
+    {
+      "id": "roborock-local-cloud",
+      "title": "Local Cloud, Real TLS",
+      "description": "Illustrated field report on Roborock Local Server provisioning, TLS trust boundaries, RSA public-key recovery, firmware compatibility, and the October 2026 eMudhra CA compromise.",
+      "source": "src/reports/roborock-local-cloud/index.html",
+      "route": "research/roborock-local-cloud/index.html",
+      "version": "1.0.0",
+      "changedAt": "2026-10-21T00:00:00.000Z",
+      "tags": [
+        "research",
+        "security",
+        "network",
+        "certificate",
+        "pki",
+        "embedded",
+        "iot",
+        "technical-writing"
+      ]
+    }
+  ]
+}
