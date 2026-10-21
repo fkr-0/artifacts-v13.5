@@ -14,7 +14,7 @@ const execFileAsync = promisify(execFile);
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const sourceRoot = resolve(
   process.env.ARTIFACTS_SOURCE_ROOT ||
-  resolve(process.env.HOME || '.', 'work/code/artifacts'),
+  resolve(process.env.HOME || '.', 'code/artifacts'),
 );
 
 async function git(args, cwd = root) {

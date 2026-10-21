@@ -9,7 +9,7 @@ const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 function arg(name) { const index = process.argv.indexOf(name); return index >= 0 ? process.argv[index + 1] : null; }
 
 const baselinePath = resolve(arg('--baseline') || resolve(root, 'catalog/v12-baseline.json'));
-const sourceRoot = resolve(arg('--source-root') || process.env.ARTIFACTS_SOURCE_ROOT || resolve(homedir(), 'work/code/artifacts'));
+const sourceRoot = resolve(arg('--source-root') || process.env.ARTIFACTS_SOURCE_ROOT || resolve(homedir(), 'code/artifacts'));
 const outputRoot = resolve(arg('--out') || resolve(root, 'dist'));
 const compatRoot = resolve(arg('--compat-root') || resolve(root, 'catalog/compat-runtime'));
 const strict = !process.argv.includes('--allow-unresolved');
