@@ -262,7 +262,53 @@ async function gitHead(path) {
   return stdout.trim();
 }
 
-function makeHubSelfRecord() {
+
+export async function readHubGitMetadata(hubRoot) {
+  if (!hubRoot) return { revision: null, commitCount: null, lastCommitAt: null, dirty: null };
+  async function git(args) {
+    const { stdout } = await execFileAsync('git', ['-C', hubRoot, ...args], {
+      encoding: 'utf8', maxBuffer: 1024 * 1024,
+    });
+    return stdout.trim();
+  }
+  try {
+    const [revision, count, lastCommitAt, dirtyPaths] = await Promise.all([
+      git(['rev-parse', 'HEAD']),
+      git(['rev-list', '--count', 'HEAD']),
+      git(['log', '-1', '--format=%cI', 'HEAD']),
+      git(['status', '--porcelain', '--untracked-files=no', '--',
+        'src/ui', 'src/lib', 'scripts/portfolio-lib.mjs']),
+    ]);
+    return {
+      revision: /^[0-9a-f]{40}$/iu.test(revision) ? revision : null,
+      commitCount: /^\d+$/u.test(count) ? Number(count) : null,
+      lastCommitAt: Number.isFinite(Date.parse(lastCommitAt)) ? lastCommitAt : null,
+      dirty: Boolean(dirtyPaths),
+    };
+  } catch {
+    // Test fixtures can have no Git repository. Never invent a revision.
+    return { revision: null, commitCount: null, lastCommitAt: null, dirty: null };
+  }
+}
+
+async function readDeploymentMetadata(hubRoot) {
+  if (!hubRoot) return null;
+  // Publication automation can inject an independently recorded deployment
+  // receipt; a successful local build is not deployment evidence.
+  const path = join(hubRoot, 'catalog/deployment.json');
+  if (!(await exists(path))) return null;
+  const receipt = JSON.parse(await readFile(path, 'utf8'));
+  if (receipt.schemaVersion !== 'artifacts-v13.5/deployment-v1' ||
+      !/^[0-9a-f]{40}$/iu.test(receipt.revision || '') ||
+      typeof receipt.deployedAt !== 'string' ||
+      !Number.isFinite(Date.parse(receipt.deployedAt))) {
+    throw new Error('Invalid deployment metadata: catalog/deployment.json');
+  }
+  return { lastDeployedAt: receipt.deployedAt, deployedRevision: receipt.revision,
+    provenance: 'publication-receipt' };
+}
+
+function makeHubSelfRecord(hubMetadata = {}) {
   return {
     id: 'app-hub-v13.5',
     version: '13.5.0',
@@ -279,8 +325,8 @@ function makeHubSelfRecord() {
     availability: 'verified',
     url: '/index.html',
     launch: { default: 'newWindow', modes: ['newWindow'], sandbox: 'none' },
-    git: { revision: null, changedAt: null, basis: 'release-build', path: 'src/ui' },
-    changedAt: null,
+    git: { revision: hubMetadata.revision || null, changedAt: hubMetadata.lastCommitAt || null, basis: 'hub-git-head', path: 'src/ui' },
+    changedAt: hubMetadata.lastCommitAt || null,
     receipt: { version: '13.5.0', files: 5, generatedAt: null },
     deployment: { state: 'staged', routePath: 'index.html', sourceKind: 'v13.5-self' },
   };
@@ -732,11 +778,15 @@ export async function assemblePortfolio({ baseline, sourceRoot, fallbackRoots = 
         deployment: { state: entry ? entry.state : 'unknown', routePath: entry ? entry.routePath : null },
       };
     });
-  const selfItem = makeHubSelfRecord();
+  const hubMetadata = await readHubGitMetadata(hubRoot ? resolve(hubRoot) : null);
+  const deploymentMetadata = await readDeploymentMetadata(hubRoot ? resolve(hubRoot) : null);
+  const selfItem = makeHubSelfRecord(hubMetadata);
   const deployedItems = [...deployedBaselineItems, selfItem, ...nativeAdditions.items, ...editorialReports.items];
   const deploymentCatalog = {
     schemaVersion: 'artifacts-v13.5/catalog-v1',
     generatedAt: new Date().toISOString(),
+    hub: { version: 'V13.5', ...hubMetadata },
+    release: deploymentMetadata || { lastDeployedAt: null, deployedRevision: null, provenance: 'unrecorded' },
     baseline: baseline.source,
     summary: {
       ...standardCatalogSummary(deployedItems),

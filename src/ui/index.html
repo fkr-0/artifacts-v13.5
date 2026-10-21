@@ -10,41 +10,75 @@
 <body>
   <a class="skip-link" href="#catalog">Skip to artifacts</a>
   <header class="masthead">
-    <div>
-      <p class="eyebrow">artifacts.fkr.dev</p>
+    <div class="masthead-main">
+      <div class="masthead-top">
+        <p class="eyebrow">artifacts.fkr.dev <span class="eyebrow-separator">/</span> Portfolio</p>
+        <details class="settings-menu" id="settings-panel">
+          <summary aria-label="Open appearance settings">⚙ Settings</summary>
+          <div class="settings-popover">
+            <h2>Hub preferences</h2>
+            <label for="theme-setting">Color theme</label>
+            <select id="theme-setting">
+              <option value="lime">Terminal lime</option>
+              <option value="blue">Cobalt</option>
+              <option value="amber">Amber</option>
+              <option value="mono">Monochrome</option>
+              <option value="light">Paper</option>
+            </select>
+            <label for="density-setting">Card density</label>
+            <select id="density-setting">
+              <option value="comfortable">Comfortable</option>
+              <option value="compact">Compact</option>
+            </select>
+            <label for="columns-setting">Card layout</label>
+            <select id="columns-setting">
+              <option value="auto">Automatic</option>
+              <option value="wide">Wide cards</option>
+            </select>
+            <button id="reset-settings" type="button">Reset preferences</button>
+            <p>Settings stay in this browser. They do not affect the artifacts.</p>
+          </div>
+        </details>
+      </div>
       <h1>Artifacts <span>V13.5</span></h1>
-      <p class="lede">Browse the complete portfolio. Search, filter, and open directly. Provenance is available when you want it.</p>
+      <p class="lede">Browse, filter, and launch the portfolio. Inspect provenance when needed.</p>
     </div>
-    <div class="summary" aria-live="polite">
-      <strong id="visible-count">0</strong>
-      <span>shown</span>
-      <span aria-hidden="true">/</span>
-      <strong id="total-count">0</strong>
-      <span>artifacts</span>
-    </div>
+    <section class="overview" aria-label="Portfolio and release statistics">
+      <div class="overview-primary">
+        <div class="big-stat"><strong id="visible-count">0</strong><span>shown / <strong id="total-count">0</strong> total</span></div>
+        <div class="small-stat"><strong id="verified-count">—</strong><span>verified</span></div>
+        <div class="small-stat"><strong id="type-count">—</strong><span>types</span></div>
+      </div>
+      <div class="kind-summary">
+        <div class="kind-summary-label"><span>Artifact composition</span><span id="kind-summary-count">—</span></div>
+        <div class="kind-bar" id="kind-bar" role="img" aria-label="Artifact types"></div>
+        <div class="kind-legend" id="kind-legend"></div>
+      </div>
+      <dl class="release-meta">
+        <div><dt>Last deploy</dt><dd id="last-deploy">Not recorded</dd></div>
+        <div><dt>Build</dt><dd id="build-date">—</dd></div>
+        <div><dt>AppHub</dt><dd><span id="hub-version">V13.5</span> <code id="hub-revision">—</code></dd></div>
+        <div><dt>Revisions</dt><dd id="hub-commits">—</dd></div>
+      </dl>
+    </section>
   </header>
 
   <main>
     <section class="controls" aria-label="Artifact filters">
       <label class="search">
         <span>Search</span>
-        <input id="search" type="search" autocomplete="off" placeholder="Meme Lab, graphics, game…">
+        <input id="search" type="search" autocomplete="off" placeholder="Search artifacts, tags…">
       </label>
-      <label>
-        <span>Kind</span>
-        <select id="kind-filter"><option value="">All kinds</option></select>
-      </label>
-      <label>
-        <span>Availability</span>
-        <select id="availability-filter"><option value="">All states</option></select>
-      </label>
-      <label class="favorite-toggle">
-        <input id="favorites-only" type="checkbox">
-        <span>Favorites only</span>
-      </label>
+      <label><span>Kind</span><select id="kind-filter"><option value="">All kinds</option></select></label>
+      <label><span>Availability</span><select id="availability-filter"><option value="">All states</option></select></label>
+      <label><span>Order</span><select id="sort-order">
+        <option value="recent">Recently updated</option>
+        <option value="title">Title A–Z</option>
+        <option value="oldest">Oldest updated</option>
+      </select></label>
+      <label class="favorite-toggle"><input id="favorites-only" type="checkbox"><span>Favorites only</span></label>
       <button id="clear-filters" type="button">Clear</button>
     </section>
-
     <p id="status" class="status" role="status" aria-live="polite"></p>
     <section id="catalog" class="catalog" aria-label="Artifacts" tabindex="-1"></section>
     <section id="empty" class="empty" hidden>
@@ -52,7 +86,6 @@
       <p>Try clearing filters or using a broader search.</p>
     </section>
   </main>
-
   <template id="artifact-card">
     <article class="artifact-card">
       <div class="card-heading">
@@ -75,7 +108,6 @@
       </div>
     </article>
   </template>
-
   <script type="module" src="./app.js"></script>
 </body>
 </html>

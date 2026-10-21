@@ -1,4 +1,4 @@
-import { facetValues, filterArtifacts, resolveLaunchUrl } from '../lib/discovery.mjs';
+import { facetValues, filterArtifacts, resolveLaunchUrl, sortArtifacts, artifactUpdatedAt } from '../lib/discovery.mjs';
 import { readFavorites, toggleFavorite } from '../lib/favorites.mjs';
 
 const nodes = {
@@ -7,23 +7,143 @@ const nodes = {
   search: document.querySelector('#search'),
   kind: document.querySelector('#kind-filter'),
   availability: document.querySelector('#availability-filter'),
+  order: document.querySelector('#sort-order'),
   favoritesOnly: document.querySelector('#favorites-only'),
   clear: document.querySelector('#clear-filters'),
   status: document.querySelector('#status'),
   visible: document.querySelector('#visible-count'),
   total: document.querySelector('#total-count'),
+  verified: document.querySelector('#verified-count'),
+  types: document.querySelector('#type-count'),
+  kindCount: document.querySelector('#kind-summary-count'),
+  kindBar: document.querySelector('#kind-bar'),
+  kindLegend: document.querySelector('#kind-legend'),
+  lastDeploy: document.querySelector('#last-deploy'),
+  build: document.querySelector('#build-date'),
+  hubVersion: document.querySelector('#hub-version'),
+  hubRevision: document.querySelector('#hub-revision'),
+  hubCommits: document.querySelector('#hub-commits'),
+  theme: document.querySelector('#theme-setting'),
+  density: document.querySelector('#density-setting'),
+  columns: document.querySelector('#columns-setting'),
+  resetSettings: document.querySelector('#reset-settings'),
   template: document.querySelector('#artifact-card'),
 };
 
+const PREF_KEY = 'artifacts-v13.5:preferences:v1';
+const DEFAULT_PREFS = Object.freeze({
+  theme: 'lime', density: 'comfortable', columns: 'auto', order: 'recent',
+});
+const ALLOWED = Object.freeze({
+  theme: ['lime', 'blue', 'amber', 'mono', 'light'],
+  density: ['comfortable', 'compact'],
+  columns: ['auto', 'wide'],
+  order: ['recent', 'oldest', 'title'],
+});
+const TYPE_COLORS = ['#a4e57d', '#78bde5', '#efb45f', '#d2a9ef', '#e77f92', '#75cabb'];
+
 let items = [];
 let favorites = readFavorites();
+
+function readPreferences() {
+  try {
+    const stored = JSON.parse(localStorage.getItem(PREF_KEY) || '{}');
+    const preferences = { ...DEFAULT_PREFS };
+    for (const key of Object.keys(DEFAULT_PREFS)) {
+      if (ALLOWED[key].includes(stored?.[key])) preferences[key] = stored[key];
+    }
+    return preferences;
+  } catch {
+    return { ...DEFAULT_PREFS };
+  }
+}
+
+function applyPreferences(preferences) {
+  document.documentElement.dataset.theme = preferences.theme;
+  document.body.dataset.density = preferences.density;
+  nodes.catalog.dataset.columns = preferences.columns;
+  nodes.theme.value = preferences.theme;
+  nodes.density.value = preferences.density;
+  nodes.columns.value = preferences.columns;
+  nodes.order.value = preferences.order;
+}
+
+function savePreferences() {
+  const preferences = {
+    theme: nodes.theme.value, density: nodes.density.value,
+    columns: nodes.columns.value, order: nodes.order.value,
+  };
+  applyPreferences(preferences);
+  try {
+    localStorage.setItem(PREF_KEY, JSON.stringify(preferences));
+  } catch {
+    // No storage or private browsing: in-memory preferences still function.
+  }
+}
+
+function dateLabel(raw) {
+  if (typeof raw !== 'string' || !Number.isFinite(Date.parse(raw))) return 'Not recorded';
+  const date = new Date(raw);
+  return date.toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
+}
+
+function setDate(node, raw) {
+  node.textContent = dateLabel(raw);
+  if (typeof raw === 'string' && Number.isFinite(Date.parse(raw))) node.title = raw;
+  else node.removeAttribute('title');
+}
+
+function renderStats(catalog) {
+  const counts = new Map();
+  for (const item of items) {
+    const kind = item.kind || 'other';
+    counts.set(kind, (counts.get(kind) || 0) + 1);
+  }
+  const sorted = [...counts].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
+  nodes.verified.textContent = String(items.filter((item) => item.availability === 'verified').length);
+  nodes.types.textContent = String(counts.size);
+  nodes.kindCount.textContent = counts.size + ' kinds';
+  nodes.kindBar.replaceChildren();
+  nodes.kindLegend.replaceChildren();
+  for (const [index, [kind, count]] of sorted.entries()) {
+    const color = TYPE_COLORS[index % TYPE_COLORS.length];
+    const segment = document.createElement('span');
+    segment.style.flexGrow = String(count);
+    segment.style.flexBasis = '0';
+    segment.style.backgroundColor = color;
+    segment.title = kind + ': ' + count;
+    nodes.kindBar.append(segment);
+
+    const legend = document.createElement('span');
+    const swatch = document.createElement('i');
+    swatch.style.backgroundColor = color;
+    swatch.setAttribute('aria-hidden', 'true');
+    legend.append(swatch, document.createTextNode(kind + ' ' + count));
+    nodes.kindLegend.append(legend);
+  }
+  nodes.kindBar.setAttribute('aria-label', sorted.map(([kind, count]) => kind + ': ' + count).join(', ') || 'No artifact data');
+
+  // A staged build is not a verified GitHub Pages deployment.
+  setDate(nodes.lastDeploy, catalog.release?.lastDeployedAt);
+  setDate(nodes.build, catalog.generatedAt);
+  nodes.hubVersion.textContent = catalog.hub?.version || 'V13.5';
+  const revision = catalog.hub?.revision;
+  nodes.hubRevision.textContent = revision ? revision.slice(0, 10) + (catalog.hub?.dirty ? '*' : '') : 'Unavailable';
+  nodes.hubRevision.title = revision
+    ? (revision + (catalog.hub?.dirty ? ' (working tree has uncommitted hub changes)' : ''))
+    : 'No Git provenance available';
+  nodes.hubCommits.textContent = Number.isSafeInteger(catalog.hub?.commitCount)
+    ? catalog.hub.commitCount.toLocaleString() + ' commits'
+    : 'Not recorded';
+  if (catalog.hub?.lastCommitAt) nodes.hubCommits.title = 'Last commit: ' + catalog.hub.lastCommitAt;
+}
 
 function fact(label, value) {
   const wrap = document.createElement('div');
   const dt = document.createElement('dt');
   const dd = document.createElement('dd');
   dt.textContent = label;
-  dd.textContent = value || '—';
+  dd.textContent = value == null || value === '' ? '—' : String(value);
   wrap.append(dt, dd);
   return wrap;
 }
@@ -81,6 +201,7 @@ function renderCard(item) {
   });
 
   const facts = card.querySelector('.facts');
+  const updated = artifactUpdatedAt(item);
   facts.append(
     fact('ID', item.id),
     fact('Status', item.status),
@@ -89,24 +210,26 @@ function renderCard(item) {
     fact('Build', item.buildMode),
     fact('Deployment', item.deployment?.state),
     fact('Git revision', item.git?.revision),
-    fact('Changed', item.changedAt),
+    fact('Last update', updated == null ? null : new Date(updated).toISOString()),
   );
   return card;
 }
 
 function render() {
-  const visible = filterArtifacts(items, {
+  const filtered = filterArtifacts(items, {
     query: nodes.search.value,
     kind: nodes.kind.value,
     availability: nodes.availability.value,
     favoritesOnly: nodes.favoritesOnly.checked,
     favoriteIds: favorites,
   });
+  const visible = sortArtifacts(filtered, nodes.order.value);
   nodes.catalog.replaceChildren(...visible.map(renderCard));
   nodes.empty.hidden = visible.length !== 0;
   nodes.visible.textContent = String(visible.length);
   nodes.total.textContent = String(items.length);
-  nodes.status.textContent = visible.length + ' of ' + items.length + ' artifacts shown.';
+  nodes.status.textContent = visible.length + ' of ' + items.length + ' artifacts shown, ordered by ' +
+    nodes.order.options[nodes.order.selectedIndex].textContent.toLowerCase() + '.';
 }
 
 async function load() {
@@ -118,6 +241,7 @@ async function load() {
     items = catalog.items;
     fillSelect(nodes.kind, facetValues(items, 'kind'));
     fillSelect(nodes.availability, facetValues(items, 'availability'));
+    renderStats(catalog);
     render();
   } catch (error) {
     nodes.status.textContent = 'Catalog unavailable: ' + error.message;
@@ -127,9 +251,19 @@ async function load() {
   }
 }
 
+applyPreferences(readPreferences());
 for (const node of [nodes.search, nodes.kind, nodes.availability, nodes.favoritesOnly]) {
   node.addEventListener(node === nodes.search ? 'input' : 'change', render);
 }
+nodes.order.addEventListener('change', () => { savePreferences(); render(); });
+for (const node of [nodes.theme, nodes.density, nodes.columns]) {
+  node.addEventListener('change', savePreferences);
+}
+nodes.resetSettings.addEventListener('click', () => {
+  applyPreferences({ ...DEFAULT_PREFS });
+  savePreferences();
+  render();
+});
 nodes.clear.addEventListener('click', () => {
   nodes.search.value = '';
   nodes.kind.value = '';
