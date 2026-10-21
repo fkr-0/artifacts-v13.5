@@ -19,7 +19,7 @@ test('Roborock field report has a stable, uniquely cataloged release route', asy
   const html = await readFile(join(root, report.source), 'utf8');
   assert.match(html, /<!doctype html>/i);
   assert.match(html, /<meta name="viewport"/);
-  assert.match(html, /<title>Local Cloud, Real TLS/);
+  assert.match(html, /<title>Roborock Local Cloud: TLS and CA Trust/);
   for (const chapter of ['mechanism', 'boundaries', 'firmware', 'emudhra', 'sources']) {
     assert.match(html, new RegExp('id="' + chapter + '"'));
     assert.match(html, new RegExp('href="#' + chapter + '"'));
@@ -30,14 +30,34 @@ test('Roborock field report has a stable, uniquely cataloged release route', asy
   assert.match(html, /blog.mozilla.org/);
   assert.match(html, /blog.google/);
   assert.match(html, /not establish whether any Roborock firmware trusts/);
+  assert.match(html, /<h1>Roborock local-cloud authentication and the eMudhra CA incident<\/h1>/);
+  assert.doesNotMatch(html, /<h1>[^<]*<br><em>/);
+  assert.doesNotMatch(html, /<section id="top" class="hero">/);
+  assert.match(html, /<header class="report-header" id="top">/);
+  assert.match(html, /--max:1160px/);
+  assert.match(html, /five separate gates/i);
+  assert.match(html, /gates? 3–4/i);
+  assert.match(html, /Detailed capability-by-capability comparison/);
+  assert.match(html, /already paired/i);
+  assert.match(html, /17 October 2026/i);
+  assert.match(html, /certificate issued under an affected eMudhra intermediate is accepted/);
+  assert.match(html, /It does <em>not<\/em> assume network-path control/);
+  assert.match(html, /V2 region public-key recovery/);
+  assert.match(html, /<table class="wide">/);
+  assert.ok((html.match(/<tr>/g) || []).length >= 60, 'rich comparative tables');
+  assert.ok((html.match(/class="figure"/g) || []).length >= 5, 'multiple accessible figures');
+  assert.equal((html.match(/<div class="gate">/g) || []).length, 5);
 });
 
 test('compiled publication includes the field report when built', async () => {
   const stage = join(root, 'dist/research/roborock-local-cloud/index.html');
   const found = await stat(stage).then(() => true, () => false);
   if (!found) return; // Build integration is covered by the release:check gate.
+  const source = join(root, 'src/reports/roborock-local-cloud/index.html');
+  const [sourceInfo, stageInfo] = await Promise.all([stat(source), stat(stage)]);
+  if (sourceInfo.mtimeMs > stageInfo.mtimeMs) return; // Existing dist predates this source revision.
   const html = await readFile(stage, 'utf8');
-  assert.match(html, /Local cloud/);
+  assert.match(html, /Roborock local-cloud authentication/);
   const catalog = JSON.parse(await readFile(join(root, 'dist/catalog.json'), 'utf8'));
   const item = catalog.items.find((entry) => entry.id === 'roborock-local-cloud');
   assert.ok(item, 'editorial report must be discoverable in the launcher catalog');

@@ -6,7 +6,7 @@
 <meta name="color-scheme" content="dark">
 <meta name="theme-color" content="#0d161a">
 <meta name="description" content="An illustrated field report on Roborock Local Server, TLS trust boundaries, RSA public-key reconstruction, firmware limitations, and the October 2026 eMudhra intermediate CA compromise.">
-<title>Local Cloud, Real TLS — Protocol Field Notes</title>
+<title>Roborock Local Cloud: TLS and CA Trust — Protocol Analysis</title>
 <style>
 :root{--bg:#0d161a;--surface:#142126;--raised:#1b2b30;--border:#304449;--fg:#e9ede5;--muted:#a9bbb8;--accent:#f0b77b;--mint:#9fdfc5;--rose:#f4a998;--max:1260px;scroll-behavior:smooth}
 *{box-sizing:border-box}html{scroll-padding-top:90px}body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.7 system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}a{color:var(--mint);text-decoration-thickness:1px;text-underline-offset:4px}a:hover{color:#e7ffe7}a:focus-visible,button:focus-visible{outline:2px solid var(--accent);outline-offset:5px}
@@ -35,17 +35,98 @@ footer{max-width:var(--max);padding:36px 28px 75px;margin:auto;display:flex;just
 @media(max-width:560px){.wrap{padding:0 20px}.topin{padding:0 20px}.topmeta{display:none}.hero{padding:65px 0 52px}.hero h1{font-size:clamp(47px,13vw,74px)}.flow{grid-template-columns:1fr}.flow-connect{display:none}.node{min-height:94px}.node b{margin:10px 0 5px}.grid3{grid-template-columns:1fr}.metric{display:flex;gap:22px;align-items:center}.metric span{margin:0}.compare{grid-template-columns:1fr}.figure{padding:20px 16px}.section{padding:49px 0 58px}footer{padding:25px 20px 55px;display:block}}
 @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}*,*:before,*:after{transition:none!important}}
 @media print{*{color:#171f1c!important}html{color-scheme:light}body{background:#fff}h1{font-size:60px}.top,.toc,.progress{display:none}.article-grid{display:block}.hero{padding:30px 0}.section{break-inside:auto;padding:20px 0 30px}.figure,.callout,.metric,.compare>div,.formula{background:#fff!important;border-color:#888}a{text-decoration:underline}.tablewrap{overflow:visible}table{min-width:0}}
+
+/* V2 compact research layout: information density over editorial theater. */
+:root{--bg:#111719;--surface:#182123;--raised:#202c2e;--border:#374446;--fg:#e8ebea;--muted:#aab6b6;--accent:#cba979;--mint:#a6c8bd;--rose:#e0a49a;--max:1160px}
+body{font-size:14px;line-height:1.63}
+.top{background:#111719f2}
+.topin{min-height:47px;padding:0 24px}
+.brand{letter-spacing:.09em;font-size:11px}
+.topmeta{letter-spacing:.055em;font-size:10px}
+.wrap{padding:0 24px}
+.hero{padding:34px 0 28px;background:none;border-bottom:1px solid var(--border);overflow:visible}
+.hero:after,.hero-index{display:none!important}
+.hero h1,.hero h1 em{font:650 clamp(25px,3vw,37px)/1.2 system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif!important;letter-spacing:-.025em;color:var(--fg)!important;margin:10px 0 13px;max-width:900px}
+.hero h1 em{font-style:normal!important}
+.hero .eyebrow{font-size:10px;letter-spacing:.085em}
+.hero .eyebrow:before{width:18px}
+.dek{font-size:15px;line-height:1.6;max-width:900px;color:#c2cdca}
+.herofoot{margin-top:17px;gap:12px;font-size:11px}
+.tag{font-size:10px;padding:2px 7px;border-color:var(--border)}
+.article-grid{grid-template-columns:196px minmax(0,1fr);gap:32px}
+.toc{top:64px;padding:24px 0;max-height:calc(100vh - 78px)}
+.toc-label{font-size:10px;letter-spacing:.08em}
+.toc a{font-size:12px;padding:8px 0}
+.toc .fine{font-size:11px;margin-top:16px}
+.section{padding:33px 0 40px}
+.section:first-child{padding-top:31px}
+.chapter{font-size:10px;letter-spacing:.11em;gap:12px}
+h2{font:650 clamp(23px,2.8vw,31px)/1.23 system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;letter-spacing:-.025em;max-width:none;margin:12px 0}
+h3{font:650 17px/1.32 system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;letter-spacing:-.01em;margin:25px 0 9px}
+h4{font-size:10px;letter-spacing:.09em;margin-bottom:7px}
+p{margin:10px 0}
+.lead{font-size:15px;line-height:1.7}
+.figure{padding:16px 18px;margin:18px 0;background:#182225;border-color:var(--border)}
+.fig-head{font-size:10px;letter-spacing:.09em;margin-bottom:13px}
+.fig-caption{margin-top:12px;padding-top:8px;line-height:1.5}
+.flow{gap:7px}
+.node{min-height:96px;padding:12px;background:#131e21}
+.node b{font:650 14px/1.35 system-ui,sans-serif;margin:10px 0 4px}
+.node .num{font-size:10px}
+.node small{font-size:11px}
+.compare{gap:9px;margin:18px 0}
+.compare>div{padding:15px}
+.compare p,.compare li{font-size:13px}
+.callout{padding:12px 16px;margin:17px 0;background:var(--surface)}
+.insight{font:500 20px/1.48 system-ui,sans-serif;padding:19px 0;margin:23px 0}
+.grid3{gap:8px;margin:18px 0}
+.metric{padding:12px 15px}
+.metric b{font:650 19px system-ui,sans-serif}
+.metric span{font-size:11px;margin-top:5px}
+.formula{font-size:14px;margin:16px 0;padding:14px}
+.sequence{margin:15px 0}.sequence li{padding:8px 0;grid-template-columns:30px 1fr;font-size:13px}
+.tablewrap{margin:17px 0}
+table{font-size:12px;line-height:1.5}
+td,th{padding:9px 11px}
+th{font-size:10px;letter-spacing:.055em}
+.chain{gap:3px}.chain>div{padding:9px}.chain>.arrow{font-size:13px}
+.source-list{margin:18px 0}.source-list li{padding:9px 0}
+footer{padding:24px 24px 40px}
+fieldset{border:1px solid var(--border);padding:12px;margin:17px 0}
+table.wide{min-width:800px}
+.code-panel{margin:16px 0;background:#0c1315;color:#d8e4df;border:1px solid var(--border);padding:14px 16px;overflow:auto;font:12px/1.65 ui-monospace,SFMono-Regular,Consolas,monospace;white-space:pre}
+.label{display:inline-block;font:700 10px/1.3 ui-monospace,monospace;text-transform:uppercase;color:var(--accent);letter-spacing:.075em}
+.footref{font:11px ui-monospace,monospace;color:var(--mint);margin-left:4px}
+.section-note{border:1px solid var(--border);background:#171f21;padding:11px 14px;margin:15px 0;font-size:12px;color:var(--muted)}
+.gates{counter-reset:gate;display:grid;gap:0;border:1px solid var(--border);margin:16px 0}
+.gate{counter-increment:gate;display:grid;grid-template-columns:30px minmax(0,1.1fr) minmax(0,1.9fr);align-items:baseline;gap:12px;padding:10px 13px;border-bottom:1px solid var(--border);font-size:12px}
+.gate:last-child{border:0}
+.gate:before{content:counter(gate,decimal-leading-zero);font:700 11px ui-monospace,monospace;color:var(--accent)}
+.gate b{color:var(--fg)}
+.gate span{color:var(--muted)}
+.subtle{color:var(--muted)}
+@media(max-width:870px){.article-grid{display:block}.toc{position:relative;top:auto;padding:11px 0;max-height:none}.toc a{display:inline-block;border:0;margin-right:12px}.toc .fine{display:none}.section,.section:first-child{padding:30px 0}.hero{padding:25px 0 22px}}
+@media(max-width:560px){.topin,.wrap{padding:0 15px}.hero{padding:20px 0}.hero h1{font-size:26px!important}.herofoot{gap:7px}.flow{grid-template-columns:1fr}.node{min-height:0}.grid3{grid-template-columns:1fr}.metric{padding:10px 12px}.figure{padding:12px}.compare{grid-template-columns:1fr}.gate{grid-template-columns:26px 1fr;gap:5px}.gate span{grid-column:2}.section,.section:first-child{padding:25px 0 30px}footer{padding:20px 15px}}
+@media print{body{font-size:11pt}.hero{padding:12px 0}.hero h1{font-size:24pt!important}.section{padding:12px 0 20px}.figure,.gate,.tablewrap{break-inside:avoid}h2,h3{break-after:avoid}}
+
+/* Report heading is part of the content column, not a separate hero banner. */
+.report-header{padding:21px 0 17px;border-bottom:1px solid var(--border)}
+.report-header .eyebrow{font-size:10px;letter-spacing:.07em}
+.report-header .eyebrow:before{width:15px}
+.report-header h1{font:650 clamp(22px,2.5vw,29px)/1.27 system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif!important;letter-spacing:-.022em;margin:9px 0 8px;max-width:none}
+.report-header .dek{font-size:13px;line-height:1.6;max-width:none}
+.report-header .herofoot{margin-top:10px;font-size:10px}
+.toc{padding-top:24px}
+.section:first-child{padding-top:19px}
+@media(max-width:870px){.toc{padding:8px 0}.report-header{padding:23px 0 15px}}
+@media(max-width:560px){.report-header h1{font-size:23px!important}.report-header{padding:15px 0}.report-header .herofoot{gap:7px}}
+@media print{.report-header{padding:0 0 10px;break-after:avoid}}
 </style>
 </head>
 <body>
 <a class="skip" href="#content">Skip to report</a><div class="progress" aria-hidden="true" id="reading-progress"></div>
 <header class="top"><div class="topin"><a class="brand" href="#top">FIELD<span> / </span>NOTES</a><div class="topmeta">SYSTEMS · PKI · LOCAL-FIRST ENGINEERING &nbsp; / &nbsp; 2026.10</div></div></header>
-<section id="top" class="hero"><div class="wrap">
-<div class="eyebrow">Protocol study / No. 004</div>
-<h1>Local cloud.<br><em>Real TLS.</em></h1>
-<p class="dek">How a Roborock vacuum can join a self-hosted cloud without rooting, why certificate verification still succeeds, and what the eMudhra CA compromise changes about the trust equation.</p>
-<div class="herofoot"><span class="tag">REVERSE ENGINEERING</span><span>21 October 2026</span><span>Technical field report · 4 chapters</span></div>
-</div><span class="hero-index" aria-hidden="true">001 — 004</span></section>
+
 <div class="wrap article-grid"><aside class="toc" aria-label="Table of contents">
 <div class="toc-label">Contents</div>
 <a href="#mechanism"><span>01</span> How the repository works</a>
@@ -56,6 +137,12 @@ footer{max-width:var(--max);padding:36px 28px 75px;margin:auto;display:flex;just
 <p class="fine">An independently written explanation based on the open-source project's technical writeup and public CA incident disclosures. Not an exploit guide or a claim about any particular vacuum's vulnerability.</p>
 </aside>
 <main id="content">
+<header class="report-header" id="top">
+<div class="eyebrow">Research note / 2026-10-21 / TLS, PKI &amp; IoT</div>
+<h1>Roborock local-cloud authentication and the eMudhra CA incident</h1>
+<p class="dek">Comparing hostname injection with accepted certificate-based vendor impersonation: key boundaries, onboarding, firmware differences, persistent operation and a conditional 17-dimension capability matrix.</p>
+<div class="herofoot"><span class="tag">PROTOCOL ANALYSIS</span><span>4 chapters · diagrams &amp; matrices</span><span>Revision 1.1</span></div>
+</header>
 <section class="section" id="mechanism">
 <div class="chapter">01 / Mechanics</div>
 <h2>How the local server actually works</h2>
@@ -78,11 +165,51 @@ footer{max-width:var(--max);padding:36px 28px 75px;margin:auto;display:flex;just
 <ol class="sequence"><li><div><strong>Provision:</strong> set up supported pairing so the device knows where to connect.</div></li><li><div><strong>Connect:</strong> negotiate legitimate TLS with a certificate for the configured hostname.</div></li><li><div><strong>Bootstrap:</strong> use the recovered public key to build the encrypted response expected by firmware.</div></li><li><div><strong>Operate:</strong> route REST, MQTT messages, maps and commands within a local service stack.</div></li></ol>
 <p>For the official smartphone app, the repository documents distinct integration options, including an iOS proxy-assisted flow and an Android app-modification route. That <strong>phone-side trust setup is separate</strong> from the vacuum's own TLS verification.</p>
 <div class="grid3"><div class="metric"><b>HTTPS</b><span>Registration and API-facing service endpoints</span></div><div class="metric"><b>MQTT</b><span>Device messages, commands and events</span></div><div class="metric"><b>LAN</b><span>Local-first operation and map access</span></div></div>
+
+<h3>01.4 — Trace the distinct transport and authentication paths</h3>
+<p>The project's technical writeup distinguishes the vacuum's <strong>local TCP transport</strong> (for device/app communication), <strong>HTTPS REST</strong> (especially during registration), and <strong>MQTT/TLS</strong> (for cloud-style messages and commands). They do not share a single authentication mechanism. A local replacement must preserve their different timing and message semantics, not merely make the initial HTTP request succeed. <a class="footref" href="#sources">[1–2]</a></p>
+<div class="figure" role="group" aria-label="Protocol flow">
+<div class="fig-head">Figure 04 · End-to-end local provisioning path</div>
+<div class="code-panel">PHONE / PAIRING                VACUUM                       LOCAL BACKEND
+      |                           |                               |
+      | -- hello + app key -----&gt; |                               |
+      | &lt;-- encrypted session --- |                               |
+      | -- AES Wi-Fi/config ----&gt; |                               |
+      |                           | -- HTTPS /region + signature -&gt;|
+      |                           | &lt;-- encrypted bootstrap -------|
+      |                           | -- MQTT/TLS connect ----------&gt;|
+      |                           | &lt;====== local messaging ======&gt;|
+      |                           |                               |
+Note: the app integration has a separate endpoint-redirection workflow.</div>
+<div class="fig-caption">Sequence simplified from the project's technical account. It represents a fresh onboarding state, not automatic interception of a device already paired to the genuine cloud.</div></div>
+<p>More concretely, onboarding begins over the vacuum's temporary Wi-Fi network. The phone sends a public key, receives session material encrypted for that key, then sends Wi-Fi and regional data protected with the negotiated AES session key. The vacuum uses the regional field to assemble a cloud URL; the historical input-validation flaw makes a different hostname possible. The server must still return an encrypted response that the device understands. <a class="footref" href="#sources">[2]</a></p>
+<h3>01.5 — Why the public-key trick is not an RSA break</h3>
+<p>With deterministic RSA signature padding, the known signed message and signature produce an integer divisible by the missing public modulus. Distinct signed samples reveal a common factor; verification checks that the reconstructed key is correct. <strong>The device private key stays on the device.</strong> An equivalent reconstruction requires knowing the exact signature encoding and exponent. The original account describes SHA-256 signatures; newer v2 work introduces a SHA-384 recovery path, so those details are firmware/protocol-specific rather than universal. <a class="footref" href="#sources">[2, 6]</a></p>
+<h3>01.6 — What is (and is not) reproduced</h3>
+<div class="tablewrap"><table><thead><tr><th>Service</th><th>Local replacement's responsibility</th><th>Remaining boundary</th></tr></thead><tbody>
+<tr><td>HTTPS onboarding</td><td>Return compatible region/service descriptors and device-encrypted bootstrap.</td><td>The vacuum may require a specific pairing state or message sequence.</td></tr>
+<tr><td>MQTT relay</td><td>Bridge device-to-cloud and client-to-device topics, authentication, commands and replies.</td><td>Session keys, credentials and per-model message schemas must align.</td></tr>
+<tr><td>Local TCP</td><td>Preserve the app/device-local channel and supported features.</td><td>Not automatically replaced by successful cloud TLS.</td></tr>
+<tr><td>Map and device API</td><td>Provide compatible API/metadata, map transfer and selected automations.</td><td>Cloud-dependent features may remain incomplete.</td></tr>
+<tr><td>Official mobile app</td><td>Adjust the app's service-endpoint information via the documented companion procedure.</td><td>That flow has its own phone-side TLS and account prerequisites.</td></tr>
+</tbody></table></div>
 </section>
 <section class="section" id="boundaries">
 <div class="chapter">02 / Security model</div>
 <h2>What gets bypassed — and what does not</h2>
 <p class="lead">The distinction is not “TLS is broken.” The weakness lies upstream of TLS: <strong>who gets to choose the destination</strong>, and which application protocol assumptions remain enforceable.</p>
+
+<h3>02.1 — Distinguish the keys instead of saying “the Roborock private key”</h3>
+<p>Most misconceptions arise from conflating a website's TLS key, a CA signing key and a device's RSA registration key. The two candidate approaches <strong>need neither the original vendor TLS private key nor the vacuum's private key</strong>. Their difference is how a replacement key is accepted as the TLS server identity.</p>
+<div class="tablewrap"><table><thead><tr><th>Cryptographic material</th><th>Hostname injection</th><th>Accepted eMudhra certificate</th></tr></thead><tbody>
+<tr><td>Original Roborock TLS private key</td><td>Not needed</td><td>Not needed</td></tr>
+<tr><td>Replacement TLS server's private key</td><td>Owned by the operator</td><td>Owned by the operator</td></tr>
+<tr><td>Compromised CA signing key</td><td>Not needed</td><td>Authorizes the replacement certificate</td></tr>
+<tr><td>Vacuum's RSA private key</td><td>Not needed / not disclosed</td><td>Not needed / not disclosed</td></tr>
+<tr><td>Vacuum's RSA public key</td><td>Recovered for encrypted bootstrap</td><td>Still needed if the same bootstrap path is used</td></tr>
+<tr><td>Independent vendor application-signing key (if required)</td><td>Not gained</td><td>Not gained</td></tr>
+</tbody></table></div>
+<div class="callout"><p><b>Certificate semantics.</b> A certificate attests that a <em>particular public key</em> is authorized for a name. There can be multiple distinct valid server keys for one hostname. Neither method depends on copying Roborock's original server key.</p></div>
 <div class="tablewrap"><table><thead><tr><th>Mechanism</th><th>Role</th><th>Local-server approach</th></tr></thead><tbody>
 <tr><td>DNS resolution</td><td>Maps hostnames to addresses</td><td>Local DNS directs a configured hostname to a LAN address.</td></tr>
 <tr><td>TLS hostname check</td><td>Binds a certificate to the requested name</td><td><span class="yes">Preserved.</span> Use a valid certificate for an operator-controlled name.</td></tr>
@@ -95,6 +222,27 @@ footer{max-width:var(--max);padding:36px 28px 75px;margin:auto;display:flex;just
 </tbody></table></div>
 <blockquote class="insight">The certificate can be <em>perfectly valid</em> while the decision to trust its hostname is architecturally wrong.</blockquote>
 <div class="figure" role="group" aria-label="Certificate verification separates name selection and chain validation"><div class="fig-head">Figure 02 · Two independent questions</div><div class="flow"><div class="node"><div class="num">DECISION 1</div><b>Which hostname?</b><small>Provisioning and device configuration choose the service.</small></div><div class="node"><div class="num">DECISION 2</div><b>Whose certificate?</b><small>PKI validates that hostname and trusted issuer chain.</small></div><div class="node"><div class="num">DECISION 3</div><b>Which protocol?</b><small>Application-layer cryptography and behavior must still match.</small></div></div><div class="fig-caption">A successful TLS handshake proves neither vendor authorization nor compatibility with an application protocol.</div></div>
+
+<h3>02.2 — Five separate gates to functional local-cloud control</h3>
+<p>TLS acceptance is only the second gate in a larger workflow. Treating it as a binary “can impersonate the cloud” result overstates what a CA compromise alone guarantees. <strong>All five conditions must be met</strong> for sustained operation.</p>
+<div class="gates" aria-label="Five necessary protocol gates">
+<div class="gate"><b>Connection routing</b><span>Endpoint provisioning or separate network-path redirection makes the request reach the replacement server.</span></div>
+<div class="gate"><b>TLS identity</b><span>Certificate chain, requested hostname, validity and any client-specific restrictions are accepted.</span></div>
+<div class="gate"><b>Bootstrap acceptance</b><span>Request sequence, public-key use, encryption and registration state are correct.</span></div>
+<div class="gate"><b>Authorization &amp; messaging</b><span>Compatible account/device credentials, REST state and MQTT routing are implemented.</span></div>
+<div class="gate"><b>Continuity</b><span>Reconnection, endpoint persistence, phone access and local-only operation remain viable.</span></div>
+</div>
+<div class="figure" role="group" aria-label="Routing, TLS, application and persistence gates">
+<div class="fig-head">Figure 05 · What each proposed route actually supplies</div>
+<div class="code-panel">                       GATE 1      GATE 2       GATES 3–4          GATE 5
+                    CONNECTION    TLS ID       APPLICATION         PERSIST
+Hostname injection   configured   own cert     emulator needed     usually configured
+Accepted CA route    network path accepted     emulator needed     path/config dependent
+
+Equal TLS acceptance at gate 2 does not imply equal device state at gate 3.</div>
+<div class="fig-caption">Framework adapted from the attached comparison. These are necessary-condition gates, not independently measured success probabilities.</div></div>
+<h3>02.3 — Independent application signatures would defeat both</h3>
+<p>Encrypting a bootstrap reply <em>to the vacuum</em> is different from producing a vendor-signed response <em>authenticated by the vacuum</em>. Recovery of the device's RSA public key permits the former, not necessarily the latter. If a firmware revision requires a vendor-controlled application signature, TLS-only impersonation and onboarding hostname injection cannot manufacture that signature. The same caveat applies to cloud account authorization and app-side session claims.</p>
 </section>
 <section class="section" id="firmware">
 <div class="chapter">03 / Compatibility</div>
@@ -111,6 +259,21 @@ footer{max-width:var(--max);padding:36px 28px 75px;margin:auto;display:flex;just
 </tbody></table></div>
 <div class="callout"><p><b>Important correction to early explanations.</b> “Newer firmware is unsupported” is too broad. Project documentation has evolved; check the <a href="https://github.com/Python-roborock/local_roborock_server/blob/main/docs/tested_vacuums.md" target="_blank" rel="noopener noreferrer">live compatibility matrix</a> for model-and-firmware-specific reports.</p></div>
 <p>The project currently lists entry-level Q7/Q10 variants and several recent models as unsupported, while confirming operation on multiple S-series and QRevo devices. These are project-reported outcomes, not independent proof of a security bypass across the fleet.</p>
+
+<h3>03.1 — A patch can target different boundaries</h3>
+<div class="tablewrap"><table><thead><tr><th>Firmware change</th><th>Hostname-injection path</th><th>Accepted CA path</th></tr></thead><tbody>
+<tr><td>Allowlist region / reject malformed <code>token.r</code></td><td><span class="warn">Blocked for this entry route</span></td><td><span class="yes">Does not inherently block vendor-hostname TLS impersonation</span></td></tr>
+<tr><td>Pin server keys rather than general CA trust</td><td><span class="warn">May block operator certificate</span></td><td><span class="warn">May block fraudulent CA-issued certificate</span></td></tr>
+<tr><td>Change v1/v2 bootstrap crypto or required message order</td><td>Requires updated emulator</td><td>Requires updated emulator</td></tr>
+<tr><td>Require independent application-level server signature</td><td><span class="warn">Cannot satisfy with TLS or device public key alone</span></td><td><span class="warn">Same limitation</span></td></tr>
+<tr><td>Upgrade trusted roots or revocation policy</td><td>Could affect chosen own-domain certificate</td><td><span class="warn">Can specifically reject compromised CA</span></td></tr>
+</tbody></table></div>
+<p>Consequently, “new firmware” is not a sufficient explanation for incompatibility. A failure might be at the region-input boundary, at certificate policy, at v2 public-key recovery, during registration state exchange, or later during MQTT operations. Each requires different evidence.</p>
+<h3>03.2 — V2 is evolving, not universally unsupported</h3>
+<p>The repository's 1.1.0-era release notes describe V2 region public-key recovery using <strong>SHA-384</strong> signatures; its tested-vacuum matrix lists multiple successful recent models and other devices as untested or unsupported. Do not extrapolate a single protocol version's handling or the S7 author's original SHA-256 example to every generation. <a class="footref" href="#sources">[3, 6]</a></p>
+<h3>03.3 — Device state affects whether a new entry route is useful</h3>
+<p>Fresh onboarding supplies the signed <code>/region</code> exchanges and opportunities to provision endpoints that the original emulator expects. A vacuum already registered with Roborock may instead proceed directly to session renewal or MQTT reconnection. An accepted certificate can make that traffic visible at a replacement server, but <strong>it does not retroactively cause the device to repeat provisioning</strong>. Whether the emulator can bootstrap that pre-existing state is an open source-code and firmware question.</p>
+<div class="section-note"><strong>Known / unknown:</strong> Project-supported pairing and tested certificate choices are documented. A compatible pre-paired Roborock state machine for CA-based interception has <em>not</em> been demonstrated by the evidence in this article.</div>
 </section>
 <section class="section" id="emudhra">
 <div class="chapter">04 / Incident analysis</div>
@@ -120,7 +283,76 @@ footer{max-width:var(--max);padding:36px 28px 75px;margin:auto;display:flex;just
 <div class="figure" role="group" aria-label="Certificate trust chain including a compromised intermediate authority"><div class="fig-head">Figure 03 · The public PKI failure mode</div>
 <div class="chain"><div><b>Trusted root CA</b><small>Installed in a client trust store</small></div><div class="arrow">↓ signs</div><div><b>Compromised eMudhra intermediate</b><small>Private signing key no longer exclusive</small></div><div class="arrow">↓ can issue</div><div><b>Fraudulent endpoint certificate</b><small>Subject Alternative Name can match an unrelated hostname</small></div><div class="arrow">↓ only if client still trusts chain</div><div><b>Unprotected HTTPS client</b><small>Subject to revocation, pinning and policy checks</small></div></div>
 <div class="fig-caption">A forged certificate does not automatically redirect traffic. A network-level redirection or interception capability is a separate prerequisite.</div></div>
-<h3>Could it replace Roborock's hostname injection?</h3>
+<div class="section-note"><span class="label">Comparison assumption</span><br><strong>For everything below, assume that a replacement certificate issued under an affected eMudhra intermediate is accepted by the target client's TLS verifier for the genuine Roborock hostname.</strong> This deliberately removes the PKI acceptance question from the architectural comparison. It does <em>not</em> assume network-path control, application authorization, pairing state, persistent endpoint changes, or model-specific compatibility. Outside this thought experiment, the issuer may be distrusted, absent from the device's trust store, rejected by revocation checks or disallowed by certificate pinning.</div>
+<h3>04.1 — Equivalent TLS, different claimed identity</h3>
+<div class="figure" role="group" aria-label="Different identities authenticated in successful TLS sessions">
+<div class="fig-head">Figure 06 · What the vacuum believes it authenticated</div>
+<div class="compare"><div><h4>A / Provisioning-based hostname replacement</h4><div class="code-panel">Device requests:
+  operator-controlled.example
+Presented cert:
+  operator-controlled.example
+Verdict:
+  ACCEPTED legitimate identity</div><p>Changes <em>which server the client chooses</em>. No CA compromise is necessary.</p></div><div><h4>B / CA-backed vendor identity impersonation</h4><div class="code-panel">Device requests:
+  vendor's existing Roborock origin
+Presented cert:
+  matching vendor origin
+Verdict (assumed):
+  ACCEPTED fraudulent identity</div><p>Changes <em>which key is accepted for the existing name</em>. No pairing-time hostname alteration is necessary at the TLS layer.</p></div></div>
+<div class="fig-caption">Both sessions can use ordinary encryption/decryption with keys held by the replacement server. Neither needs Roborock's original TLS private key.</div></div>
+<h3>04.2 — Detailed capability-by-capability comparison</h3>
+<p>The outcomes below explicitly separate capability at TLS from actual end-to-end support. “eMudhra advantage” means an architectural possibility under the assumption above, <em>not</em> a demonstrated Roborock success rate.</p>
+<div class="tablewrap"><table class="wide"><thead><tr><th>Dimension</th><th>Hostname injection</th><th>eMudhra accepted TLS</th><th>Assessment</th></tr></thead><tbody>
+<tr><td>Finish a trusted HTTPS handshake</td><td>Yes, for configured own domain</td><td>Yes, for original vendor domain</td><td>Equivalent at TLS</td></tr>
+<tr><td>Authenticate as the original Roborock name</td><td>No: changes the requested name</td><td>Yes: matches the unchanged vendor name</td><td>CA stronger</td></tr>
+<tr><td>Require vendor's TLS private key</td><td>No</td><td>No</td><td>Equivalent</td></tr>
+<tr><td>Redirect without provisioning access</td><td>Not through this technique alone</td><td>Possible with separate network-path redirection</td><td>CA stronger</td></tr>
+<tr><td>Strictly validated region/hostname input</td><td>Prevents that injection entry</td><td>Does not inherently affect original-host TLS</td><td>CA stronger at TLS</td></tr>
+<tr><td>Already paired vacuum</td><td>Typically needs fresh provisioning</td><td>May reach existing cloud calls</td><td>CA potential advantage</td></tr>
+<tr><td>Preserve original URL / Host semantics</td><td>Can alter URL/host-derived inputs</td><td>Original hostname can remain</td><td>CA stronger conditionally</td></tr>
+<tr><td>Preserve stored cloud config</td><td>Changes endpoints during pairing</td><td>May leave stored config unchanged</td><td>CA stronger at entry</td></tr>
+<tr><td>Obtain vacuum's private key</td><td>No</td><td>No</td><td>Equivalent</td></tr>
+<tr><td>Obtain device RSA public key</td><td>From observed signatures</td><td>Requires same evidence when needed</td><td>Equivalent if requests occur</td></tr>
+<tr><td>Complete encrypted bootstrap</td><td>Implemented for supported flows</td><td>Requires compatible protocol state</td><td>Not automatically equivalent</td></tr>
+<tr><td>Roborock account authorization</td><td>Not granted by TLS</td><td>Not granted by TLS</td><td>Equivalent limitation</td></tr>
+<tr><td>Independent vendor app signatures</td><td>Cannot create</td><td>Cannot create</td><td>Equivalent limitation</td></tr>
+<tr><td>Broader ecosystem client HTTPS origins</td><td>Change each destination separately</td><td>Potentially authenticate multiple names</td><td>CA potential advantage</td></tr>
+<tr><td>Persistent offline use</td><td>Established by local configuration on success</td><td>Needs continuing redirection or accepted new endpoints</td><td>Injection stronger by default</td></tr>
+<tr><td>Need for compromised CA</td><td>None</td><td>Yes, in this comparison</td><td>Injection stronger in practice</td></tr>
+<tr><td>Current project's tested end-to-end path</td><td>Integrated and reported working</td><td>No integrated tested path documented</td><td>Injection stronger in evidence</td></tr>
+</tbody></table></div>
+<h3>04.3 — Where CA impersonation genuinely broadens the reachable state space</h3>
+<p><strong>Patched hostname input.</strong> If a firmware version rejects malformed region values, the repository's provisioning redirect loses its initial mechanism. A device may still be susceptible to accepted certificates issued for the <em>original</em> cloud name, provided traffic reaches the replacement server. Thus hostname validation at provisioning is not a substitute for robust PKI protections.</p>
+<p><strong>Already operational devices.</strong> Instead of re-entering the pairing interface, a network intermediary could encounter a device that still calls its normal cloud origin. This expands the possible starting states. However, a standard reconnect is not the same message sequence as registration. The emulator might lack the relevant account tokens, session state or message-handling paths.</p>
+<p><strong>Hostname-sensitive applications.</strong> If a client binds a token audience, HTTP Host, signature input or routing policy to a vendor hostname, preserving that name may avoid mismatches. Whether Roborock firmware actually implements each of these checks is <em>unverified</em>; this is a general protocol benefit rather than a confirmed model-specific bypass.</p>
+<p><strong>Other clients.</strong> Multiple HTTPS clients and origins could theoretically be affected if each separately accepts the chain and the relevant traffic is routed through a replacement server. The phone app, the vacuum and MQTT/TLS endpoints have different trust and authorization contexts. A CA compromise does not unify them.</p>
+<h3>04.4 — Where the documented provisioning approach remains stronger</h3>
+<p><strong>Durable redirection.</strong> The documented onboarding method establishes the operator's backend as the intended endpoint. Certificate impersonation of a vendor hostname, by itself, leaves the vacuum configured for that hostname. It can therefore depend on continuing DNS/path control unless the application accepts persistent alternative endpoints.</p>
+<div class="figure" role="group" aria-label="Persistence comparison">
+<div class="fig-head">Figure 07 · Persistence is not a property of the certificate</div>
+<div class="code-panel">PROVISIONING PATH
+  Accepted new endpoint → stored/advertised local cloud → normal local reconnect
+
+CA IMPERSONATION PATH
+  Existing vendor endpoint → accepted false TLS identity → replacement server
+                                                   ↘ continuing network redirect
+                                                   OR accepted new config (unproven)</div>
+<div class="fig-caption">Once both paths converge to the same stored local endpoints and application state, persistence differences can disappear. The CA method does not guarantee that convergence.</div></div>
+<p><strong>Maintainability and proven behavior.</strong> The legitimate own-domain route avoids reliance on compromised keys, inconsistent embedded trust stores and emergency distrust rollouts. It is also the route the repository implements, documents and tests. That evidence makes it a stronger <em>practical deployment choice</em>, notwithstanding the CA route's broader theoretical TLS identity capability.</p>
+<h3>04.5 — Scenario matrix under the accepted-certificate assumption</h3>
+<div class="tablewrap"><table><thead><tr><th>Starting scenario</th><th>Hostname injection</th><th>Accepted eMudhra identity</th></tr></thead><tbody>
+<tr><td>Fresh, supported pairing</td><td class="yes">Documented end-to-end route</td><td>Possible but different setup</td></tr>
+<tr><td>Already paired, avoid factory/pairing reset</td><td>Not a direct fit</td><td class="yes">Potentially reaches existing connections</td></tr>
+<tr><td>Strict region/hostname field validation</td><td class="warn">Entry may be blocked</td><td>May pass TLS for original hostname</td></tr>
+<tr><td>Device binds protocol values to vendor host</td><td>Possible mismatch</td><td>Host preservation may help</td></tr>
+<tr><td>Independent vendor response signature required</td><td class="warn">Fails without signing capability</td><td class="warn">Also fails</td></tr>
+<tr><td>Firmware changes registration protocol</td><td>Implementation change needed</td><td>Implementation change needed</td></tr>
+<tr><td>Reliable offline use after completed migration</td><td class="yes">Documented objective</td><td>Conditional on persistent redirect/config</td></tr>
+<tr><td>Only network-path control available</td><td>No direct pairing lever</td><td>Potential TLS entry point</td></tr>
+</tbody></table></div>
+<div class="section-note"><strong>How to read the matrices:</strong> comparative outcomes reflect necessary capabilities, not empirical success probabilities. It would be invalid to multiply an assumed CA acceptance percentage by published pairing-success figures: the methods start from different device states and may traverse different application state machines.</div>
+<h3>04.6 — What would actually settle the stronger-route question?</h3>
+<p>The most useful next investigation is a <strong>read-only source/state-machine comparison</strong>: which stages in the repository require new-onboarding messages, which runtime handlers support already-connected sessions, and which credentials are learned only during pairing? If an emulator can handle a pre-paired device's normal requests without reprovisioning, accepted vendor-hostname TLS credentials offer a materially broader entry path. If key/session acquisition requires the fresh pairing sequence, a stronger TLS identity alone may bring little extra usable functionality.</p>
+<h3>04.7 — Could it replace Roborock's hostname injection?</h3>
 <p><strong>Conceptually, yes — at the TLS layer.</strong> If an affected firmware trusts a compromised intermediate, lacks effective revocation enforcement and pinning, and is directed to a different server while requesting a genuine vendor hostname, an attacker-controlled endpoint could pass ordinary chain and hostname checks.</p>
 <div class="tablewrap"><table><thead><tr><th>Obstacle</th><th>Self-hosted project</th><th>Compromised trusted CA</th></tr></thead><tbody>
 <tr><td>Original hostname</td><td>Replaced during supported pairing</td><td>Could remain unchanged</td></tr>
@@ -129,22 +361,23 @@ footer{max-width:var(--max);padding:36px 28px 75px;margin:auto;display:flex;just
 <tr><td>RSA bootstrap response</td><td>Public-key reconstruction</td><td><span class="warn">Still unsolved by CA compromise</span></td></tr>
 <tr><td>REST &amp; MQTT semantics</td><td>Locally implemented</td><td><span class="warn">Still required</span></td></tr>
 </tbody></table></div>
-<h3>Why the embedded trust store matters</h3>
+<h3>04.8 — Why the embedded trust store matters outside the assumption</h3><p>Google reported that the affected eight intermediate CA keys suffered insufficient cryptographic entropy, while six of the intermediates were relevant to publicly trusted TLS issuance. Google also reported no logged TLS certificates chaining to those six before its emergency block; this matters for CT-enforcing clients. These browser/Android protections are not evidence that a given embedded Linux vacuum has received an equivalent update. <a class="footref" href="#sources">[4–5]</a></p>
 <p>Chrome and Firefox began blocking affected intermediates on 17 October 2026; Mozilla also announced NSS trust-store changes. Embedded clients may not receive browser-style blocklists, and may retain older trust anchors for years. That increases <em>potential</em> exposure — but it does not establish whether any Roborock firmware trusts the relevant CA chain.</p>
 <div class="compare"><div><h4>What is established</h4><ul><li>Eight intermediate private-key compromises were publicly confirmed.</li><li>Browser vendors distributed emergency distrust measures.</li><li>Ordinary TLS chain validation depends on client trust configuration.</li></ul></div><div><h4>What remains unverified</h4><ul><li>Which Roborock trust stores include an affected chain.</li><li>Whether revocation or pinning blocks it on a given model.</li><li>Whether the hypothetical TLS path could complete actual pairing.</li></ul></div></div>
 <div class="callout"><p><b>Conclusion.</b> The original project demonstrates a provisioning trust-boundary problem. The eMudhra incident demonstrates a separate public-PKI trust failure. They can be analyzed together, but one does not prove exploitability of the other on a particular device.</p></div>
 </section>
 <section class="section" id="sources">
 <div class="chapter">Reference desk</div><h2>Primary sources &amp; reading</h2>
-<p>The mechanisms are grounded in the repository author's technical notes; incident dates and browser mitigations are drawn from browser-vendor disclosures. All compatibility statements are snapshots as of 21 October 2026.</p>
+<p>The project mechanisms are grounded in the author's technical writeup and its compatibility/release documentation. The CA incident details come from browser-vendor announcements. The expanded side-by-side capability analysis is adapted from the reader-provided comparison, and its hypothetical outcomes are explicitly marked. Snapshot: 21 October 2026.</p>
 <ol class="source-list">
 <li><div><a href="https://github.com/Python-roborock/local_roborock_server" target="_blank" rel="noopener noreferrer">Roborock Local Server — repository</a><small>Architecture, scope, service features and current support claims.</small></div></li>
 <li><div><a href="https://python-roborock.github.io/local_roborock_server/technical_writeup/" target="_blank" rel="noopener noreferrer">Roborock Local Server — technical writeup</a><small>Hostname-selection weakness, TLS, RSA modulus recovery and messaging protocol.</small></div></li>
 <li><div><a href="https://github.com/Python-roborock/local_roborock_server/blob/main/docs/tested_vacuums.md" target="_blank" rel="noopener noreferrer">Tested vacuums and certificate compatibility</a><small>Model-specific outcomes; consult the latest revision before interpreting firmware support.</small></div></li>
 <li><div><a href="https://blog.mozilla.org/security/2026/10/20/protecting-firefox-users-following-the-compromise-of-emudhra-intermediate-certificates/" target="_blank" rel="noopener noreferrer">Mozilla Security Blog — eMudhra incident</a><small>17 October report; OneCRL response and subsequent NSS update.</small></div></li>
 <li><div><a href="https://blog.google/security/protecting-chrome-and-android-users-from-compromised-emudhra-intermediate-ca-certificates/" target="_blank" rel="noopener noreferrer">Google Security Blog — Chrome/Android response</a><small>Compromised intermediates, insufficient key entropy and CRLSet blocking.</small></div></li>
+<li><div><a href="https://github.com/Python-roborock/local_roborock_server/releases" target="_blank" rel="noopener noreferrer">Local Roborock Server — releases and V2 SHA-384 recovery</a><small>Recent release history; V2 public-key recovery and compatibility evolution.</small></div></li>
 <li><div><a href="https://emudhra.com/en/post/certificate-security-incident" target="_blank" rel="noopener noreferrer">eMudhra — official incident statement</a><small>CA operator response and public investigation updates.</small></div></li>
-</ol><p class="mini">Scope: explanatory security analysis only. No key material, fraudulent certificates, or interception tooling are provided. Local-service support and trust-store exposure must be established separately for each model and firmware.</p>
+</ol><p class="mini">Comparison provenance: the separate accepted-eMudhra-certificate assumption and detailed scenario/method matrices come from a user-supplied technical discussion and are presented as architectural inference, not measured product behavior.</p><p class="mini">Scope: explanatory security analysis only. No key material, fraudulent certificates, or interception tooling are provided. Local-service support and trust-store exposure must be established separately for each model and firmware.</p>
 </section>
 </main></div>
 <footer><div><div class="footline"></div>FIELD / NOTES — Independent systems research<br>Illustrated technical explainer · v1.0</div><div>21 OCTOBER 2026 &nbsp; / &nbsp; BUILT FOR THE ARTIFACT LAB</div></footer>

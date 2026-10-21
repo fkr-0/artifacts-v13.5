@@ -3,11 +3,11 @@
   "reports": [
     {
       "id": "roborock-local-cloud",
-      "title": "Local Cloud, Real TLS",
-      "description": "Illustrated field report on Roborock Local Server provisioning, TLS trust boundaries, RSA public-key recovery, firmware compatibility, and the October 2026 eMudhra CA compromise.",
+      "title": "Roborock Local Cloud: TLS and CA Trust",
+      "description": "Technical field report comparing Roborock hostname injection and eMudhra CA-based TLS impersonation: cryptographic key roles, onboarding, five protocol gates, current firmware limits, 17-dimension capability matrix and scenario outcomes under an explicit certificate-acceptance assumption.",
       "source": "src/reports/roborock-local-cloud/index.html",
       "route": "research/roborock-local-cloud/index.html",
-      "version": "1.0.0",
+      "version": "1.1.0",
       "changedAt": "2026-10-21T00:00:00.000Z",
       "tags": [
         "research",
