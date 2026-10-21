@@ -45,7 +45,32 @@ test('Roborock field report has a stable, uniquely cataloged release route', asy
   assert.match(html, /V2 region public-key recovery/);
   assert.match(html, /<table class="wide">/);
   assert.ok((html.match(/<tr>/g) || []).length >= 60, 'rich comparative tables');
-  assert.ok((html.match(/class="figure"/g) || []).length >= 5, 'multiple accessible figures');
+  assert.equal((html.match(/class="figure mermaid-figure"/g) || []).length, 8, 'all eight figures use locally rendered Mermaid');
+  assert.equal((html.match(/Open full-size SVG/g) || []).length, 8, 'all diagrams offer an accessible full-size view');
+  assert.doesNotMatch(html, /<div class="code-panel">/, 'ASCII flows are replaced by diagrams');
+  assert.doesNotMatch(html, /<blockquote class="insight">/, 'the article thesis is prose, not a false quotation');
+  assert.match(html, /01\.3 — Emulating a service, not just a TLS endpoint/);
+  assert.match(html, /HTTPS.*?registration and service-configuration path/s);
+  assert.match(html, /MQTT over TLS/);
+  assert.match(html, /local TCP/);
+  assert.match(html, /A crucial distinction is that/);
+  assert.match(html, /Mermaid source \(\.mmd\)/);
+  assert.equal(report.version, '1.2.0');
+  assert.equal(report.assets.length, 16);
+  for (const asset of report.assets) {
+    assert.match(asset, /^figures\/\d\d-[a-z-]+\.(?:mmd|svg)$/);
+    const file = join(root, 'src/reports/roborock-local-cloud', asset);
+    const data = await readFile(file, 'utf8');
+    if (asset.endsWith('.svg')) {
+      assert.match(data, /^<svg\b/);
+      assert.ok(!data.includes('<script'), 'generated SVG must not ship scripts');
+      assert.doesNotMatch(data, /Unsupported markdown|Parse error|Syntax error/i, 'Mermaid rendered text must be valid');
+      assert.ok(html.includes(`src="${asset}"`), `published page must reference ${asset}`);
+    } else {
+      assert.match(data, /^(?:flowchart|sequenceDiagram)/);
+      assert.ok(html.includes(`href="${asset}"`), `editable source must be reachable: ${asset}`);
+    }
+  }
   assert.equal((html.match(/<div class="gate">/g) || []).length, 5);
 });
 
@@ -67,4 +92,10 @@ test('compiled publication includes the field report when built', async () => {
   assert.equal(routes.entries.find((entry) => entry.id === 'roborock-local-cloud')?.state, 'staged');
   const assets = JSON.parse(await readFile(join(root, 'dist/asset-manifest.json'), 'utf8'));
   assert.ok(assets.files['research/roborock-local-cloud/index.html']?.sha256);
+  assert.equal(item.receipt.files, 17);
+  for (const asset of JSON.parse(await readFile(descriptorPath, 'utf8')).reports[0].assets) {
+    const releaseAsset = join(root, 'dist/research/roborock-local-cloud', asset);
+    assert.equal(await stat(releaseAsset).then(() => true, () => false), true, `missing staged figure: ${asset}`);
+    assert.ok(assets.files['research/roborock-local-cloud/' + asset]?.sha256, `missing asset hash for ${asset}`);
+  }
 });

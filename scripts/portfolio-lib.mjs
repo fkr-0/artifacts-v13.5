@@ -360,6 +360,28 @@ async function stageEditorialReports(hubRoot, outputRoot) {
     }
     await mkdir(dirname(join(outputRoot, route)), { recursive: true });
     await writeFile(join(outputRoot, route), contents);
+    // Each editorial figure is built offline from versioned Mermaid source.
+    // Copy only explicitly declared local assets: never rely on a runtime CDN.
+    const assets = report.assets || [];
+    if (!Array.isArray(assets) || assets.length > 64 ||
+        new Set(assets).size !== assets.length) {
+      throw new Error('Invalid editorial asset list for ' + report.id);
+    }
+    const sourceBase = dirname(source);
+    const routeBase = dirname(route);
+    let assetBytes = 0;
+    for (const entry of assets) {
+      const asset = safeManifestPath(entry, 'editorial.assets');
+      if (!asset.startsWith('figures/') || !/\.(?:svg|mmd)$/iu.test(asset)) {
+        throw new Error('Unsupported editorial asset: ' + asset);
+      }
+      const data = await readFile(join(hubRoot, sourceBase, asset));
+      assetBytes += data.length;
+      if (assetBytes > 2 * 1024 * 1024) throw new Error('Editorial asset limit exceeded: ' + report.id);
+      const target = join(outputRoot, routeBase, asset);
+      await mkdir(dirname(target), { recursive: true });
+      await writeFile(target, data);
+    }
     items.push({
       id: report.id,
       version: report.version,
@@ -378,7 +400,7 @@ async function stageEditorialReports(hubRoot, outputRoot) {
       launch: { default: 'newWindow', modes: ['newWindow', 'fullscreen'], sandbox: 'trusted' },
       changedAt: report.changedAt,
       git: { revision: null, changedAt: report.changedAt, basis: 'release-build', path: source },
-      receipt: { version: report.version, files: 1, generatedAt: null },
+      receipt: { version: report.version, files: 1 + assets.length, generatedAt: null },
       deployment: { state: 'staged', routePath: route, sourceKind: 'v13.5-editorial' },
     });
     routes.push({ id: report.id, url: '/' + route, path: route,

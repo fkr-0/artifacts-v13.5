@@ -121,6 +121,19 @@ table.wide{min-width:800px}
 @media(max-width:870px){.toc{padding:8px 0}.report-header{padding:23px 0 15px}}
 @media(max-width:560px){.report-header h1{font-size:23px!important}.report-header{padding:15px 0}.report-header .herofoot{gap:7px}}
 @media print{.report-header{padding:0 0 10px;break-after:avoid}}
+/* Mermaid sources are rendered to local SVGs; no CDN, runtime script or network fonts. */
+.mermaid-figure{margin:17px 0}
+.diagram-frame{overflow-x:auto;overflow-y:hidden;max-width:100%;padding:8px 1px;scrollbar-color:#607575 #142126}
+.diagram-image{display:block;width:100%;min-width:760px;height:auto;max-width:none;margin:auto}
+.diagram-image[src*="01-onboarding"],.diagram-image[src*="05-five-gates"],.diagram-image[src*="08-persistence"]{min-width:1000px}
+.mermaid-figure .fig-caption{margin-top:7px}
+.diagram-source{display:inline-block;font:600 10px/1.65 ui-monospace,Consolas,monospace;margin-left:7px;white-space:nowrap}
+@media(max-width:880px){.diagram-image{min-width:720px}.diagram-image[src*="01-onboarding"],.diagram-image[src*="05-five-gates"],.diagram-image[src*="08-persistence"]{min-width:980px}}
+@media print{.diagram-frame{overflow:visible}.diagram-image{min-width:0!important;max-width:100%;width:100%!important}figure.mermaid-figure{break-inside:avoid}}
+
+.diagram-actions{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px;color:var(--muted);font:600 10px/1.5 ui-monospace,Consolas,monospace;margin:4px 0 7px}
+.diagram-actions a{color:var(--mint)}
+@media print{.diagram-actions{display:none}}
 </style>
 </head>
 <body>
@@ -141,17 +154,18 @@ table.wide{min-width:800px}
 <div class="eyebrow">Research note / 2026-10-21 / TLS, PKI &amp; IoT</div>
 <h1>Roborock local-cloud authentication and the eMudhra CA incident</h1>
 <p class="dek">Comparing hostname injection with accepted certificate-based vendor impersonation: key boundaries, onboarding, firmware differences, persistent operation and a conditional 17-dimension capability matrix.</p>
-<div class="herofoot"><span class="tag">PROTOCOL ANALYSIS</span><span>4 chapters · diagrams &amp; matrices</span><span>Revision 1.1</span></div>
+<div class="herofoot"><span class="tag">PROTOCOL ANALYSIS</span><span>4 chapters · diagrams &amp; matrices</span><span>Revision 1.2</span></div>
 </header>
 <section class="section" id="mechanism">
 <div class="chapter">01 / Mechanics</div>
 <h2>How the local server actually works</h2>
 <p class="lead">The project replaces Roborock's cloud-facing control plane with a local HTTPS and MQTT implementation. Its key achievement is to make the vacuum <strong>choose the local server's hostname</strong> before ordinary TLS authentication begins.</p>
-<div class="figure" role="group" aria-label="Three trust phases: local provisioning, TLS authentication, and local service communication">
-<div class="fig-head">Figure 01 · From provisioning to local operation</div>
-<div class="flow"><div class="node"><div class="num">PHASE A / CONFIGURE</div><b>Phone → Vacuum</b><small>Wi-Fi onboarding conveys the region/bootstrap configuration.</small></div><div class="node"><div class="num">PHASE B / VERIFY</div><b>Vacuum → Local HTTPS</b><small>The client checks a real TLS certificate against the <em>chosen</em> hostname.</small></div><div class="node"><div class="num">PHASE C / OPERATE</div><b>Vacuum ⇄ Local cloud</b><small>REST, MQTT and map traffic run against the emulated endpoints.</small></div></div>
-<div class="fig-caption">Trust moves across separate layers. Redirecting packets, authenticating the HTTPS peer, and understanding the Roborock application protocol are three different problems.</div>
-</div>
+<figure class="figure mermaid-figure" aria-labelledby="fig-01-title">
+<figcaption id="fig-01-title" class="fig-head">Figure 01 · From pairing to operating a local cloud</figcaption>
+<div class="diagram-frame"><img class="diagram-image" src="figures/01-onboarding.svg" alt="Pairing leads to a configured TLS endpoint, encrypted registration and MQTT operation." loading="lazy" decoding="async"></div>
+<div class="diagram-actions"><span>↔ Pan for the full graph</span><a href="figures/01-onboarding.svg" target="_blank" rel="noopener noreferrer">Open full-size SVG ↗</a></div>
+<figcaption class="fig-caption">Follow the arrows from pairing to ongoing control. The certificate-validation fork explains why redirecting packets to a LAN IP without an accepted certificate is not enough. <a class="diagram-source" href="figures/01-onboarding.mmd" download>Mermaid source (.mmd)</a></figcaption>
+</figure>
 <h3>01.1 — Hostname selection precedes certificate validation</h3>
 <p>During supported onboarding flows, a region-derived field is incorporated into a service URL. The project documents a URL/hostname injection technique that directs the vacuum to an operator-controlled domain. The vacuum then requests that hostname, allowing the local endpoint to present an ordinary publicly trusted certificate <strong>for that exact name</strong>.</p>
 <div class="compare"><div><h4>DNS-only rewrite</h4><p>Device requests the genuine Roborock hostname, but DNS sends its TCP connection to a local IP.</p><p class="warn"><strong>Typically fails:</strong> the local server's own-domain certificate does not match the requested Roborock hostname.</p></div><div><h4>Provisioning redirect</h4><p>Device is provisioned to request the operator's own domain; local DNS maps it to the LAN server.</p><p class="yes"><strong>Can succeed:</strong> the certificate matches the hostname the device actually requested.</p></div></div>
@@ -161,27 +175,27 @@ table.wide{min-width:800px}
 <div class="formula">sᵉ ≡ EMSA(msg) (mod n)<br>gcd(s₁ᵉ − EMSA(m₁), s₂ᵉ − EMSA(m₂)) ≈ n
 <small>s = signature; e = public exponent (commonly 65537); n = public modulus. Independent samples may produce n times a removable cofactor.</small></div>
 <p>Because the signature encoding is deterministic and the signed messages are known, multiple signatures constrain the hidden modulus. The implementation can recover and verify a candidate <strong>public</strong> key without extracting the vacuum's private key or breaking RSA's secrecy assumptions.</p>
-<h3>01.3 — Emulating the cloud after registration</h3>
+<h3>01.3 — Emulating a service, not just a TLS endpoint</h3>
+<p>A replacement HTTPS server can answer registration requests, but a useful local cloud must also provide the service configuration, credentials, message routing and responses the vacuum expects <em>after</em> pairing. This is not just one certificate or one redirected socket: several clients and services must agree on which addresses, protocols and authentication material to use.</p>
 <ol class="sequence"><li><div><strong>Provision:</strong> set up supported pairing so the device knows where to connect.</div></li><li><div><strong>Connect:</strong> negotiate legitimate TLS with a certificate for the configured hostname.</div></li><li><div><strong>Bootstrap:</strong> use the recovered public key to build the encrypted response expected by firmware.</div></li><li><div><strong>Operate:</strong> route REST, MQTT messages, maps and commands within a local service stack.</div></li></ol>
 <p>For the official smartphone app, the repository documents distinct integration options, including an iOS proxy-assisted flow and an Android app-modification route. That <strong>phone-side trust setup is separate</strong> from the vacuum's own TLS verification.</p>
-<div class="grid3"><div class="metric"><b>HTTPS</b><span>Registration and API-facing service endpoints</span></div><div class="metric"><b>MQTT</b><span>Device messages, commands and events</span></div><div class="metric"><b>LAN</b><span>Local-first operation and map access</span></div></div>
+<p>These three communication paths have different jobs and are not interchangeable. <strong>HTTPS</strong> is the registration and service-configuration path; <strong>MQTT over TLS</strong> is the ongoing command-and-event channel; and <strong>local TCP</strong> supports direct device-facing features where available. “LAN” describes where packets travel, not a third application protocol. TLS acceptance by the vacuum does not automatically configure or authenticate the phone app or controller.</p>
+<figure class="figure mermaid-figure" aria-labelledby="fig-02-title">
+<figcaption id="fig-02-title" class="fig-head">Figure 02 · Client and service relationships</figcaption>
+<div class="diagram-frame"><img class="diagram-image" src="figures/02-service-channels.svg" alt="Diagram linking phone, vacuum, HTTPS bootstrap service, MQTT broker and controller, with labelled pairing configuration, direct TCP features, bootstrap requests, credentials, commands and events." loading="lazy" decoding="async"></div>
+<div class="diagram-actions"><span>↔ Pan for the full graph</span><a href="figures/02-service-channels.svg" target="_blank" rel="noopener noreferrer">Open full-size SVG ↗</a></div>
+<figcaption class="fig-caption">Each arrow identifies <em>the participants</em>, <em>the transport</em> and <em>the purpose</em> of an exchange. Pairing supplies endpoint configuration, HTTPS handles registration, and MQTT relays operational commands and events. The dashed phone-to-API link represents additional phone-app integration rather than a connection created by TLS validation. <a class="diagram-source" href="figures/02-service-channels.mmd" download>Mermaid source (.mmd)</a></figcaption>
+</figure>
+<p>Consequently, replacing the first HTTPS endpoint does not by itself implement the cloud. The vacuum needs enough registration data to connect to the MQTT broker, the broker must understand the device's credentials and topics, and the phone may require a separate redirection procedure. Missing a later connection can leave onboarding apparently successful while app controls, maps or live telemetry remain incomplete.</p>
 
-<h3>01.4 — Trace the distinct transport and authentication paths</h3>
-<p>The project's technical writeup distinguishes the vacuum's <strong>local TCP transport</strong> (for device/app communication), <strong>HTTPS REST</strong> (especially during registration), and <strong>MQTT/TLS</strong> (for cloud-style messages and commands). They do not share a single authentication mechanism. A local replacement must preserve their different timing and message semantics, not merely make the initial HTTP request succeed. <a class="footref" href="#sources">[1–2]</a></p>
-<div class="figure" role="group" aria-label="Protocol flow">
-<div class="fig-head">Figure 04 · End-to-end local provisioning path</div>
-<div class="code-panel">PHONE / PAIRING                VACUUM                       LOCAL BACKEND
-      |                           |                               |
-      | -- hello + app key -----&gt; |                               |
-      | &lt;-- encrypted session --- |                               |
-      | -- AES Wi-Fi/config ----&gt; |                               |
-      |                           | -- HTTPS /region + signature -&gt;|
-      |                           | &lt;-- encrypted bootstrap -------|
-      |                           | -- MQTT/TLS connect ----------&gt;|
-      |                           | &lt;====== local messaging ======&gt;|
-      |                           |                               |
-Note: the app integration has a separate endpoint-redirection workflow.</div>
-<div class="fig-caption">Sequence simplified from the project's technical account. It represents a fresh onboarding state, not automatic interception of a device already paired to the genuine cloud.</div></div>
+<h3>01.4 — A message-level view of fresh onboarding</h3>
+<p>Figure 02 describes the system's connections; this sequence adds their <strong>ordering during one fresh pairing</strong>. Configuration supplies the Wi-Fi and region information, the vacuum chooses its HTTPS destination, and the encrypted registration response supplies the material required for later MQTT operation. These messages cross distinct cryptographic boundaries, not one undifferentiated “authenticated Roborock connection.” <a class="footref" href="#sources">[1–2]</a></p>
+<figure class="figure mermaid-figure" aria-labelledby="fig-03-title">
+<figcaption id="fig-03-title" class="fig-head">Figure 03 · Fresh onboarding as a message sequence</figcaption>
+<div class="diagram-frame"><img class="diagram-image" src="figures/03-registration-sequence.svg" alt="The pairing tool provisions Wi-Fi and region values; the vacuum contacts local HTTPS for registration and later connects to a local MQTT broker." loading="lazy" decoding="async"></div>
+<div class="diagram-actions"><span>↔ Pan for the full graph</span><a href="figures/03-registration-sequence.svg" target="_blank" rel="noopener noreferrer">Open full-size SVG ↗</a></div>
+<figcaption class="fig-caption">Message order matters: HTTPS bootstraps service configuration while MQTT carries later commands. An already-paired device may not repeat the registration exchanges shown here. <a class="diagram-source" href="figures/03-registration-sequence.mmd" download>Mermaid source (.mmd)</a></figcaption>
+</figure>
 <p>More concretely, onboarding begins over the vacuum's temporary Wi-Fi network. The phone sends a public key, receives session material encrypted for that key, then sends Wi-Fi and regional data protected with the negotiated AES session key. The vacuum uses the regional field to assemble a cloud URL; the historical input-validation flaw makes a different hostname possible. The server must still return an encrypted response that the device understands. <a class="footref" href="#sources">[2]</a></p>
 <h3>01.5 — Why the public-key trick is not an RSA break</h3>
 <p>With deterministic RSA signature padding, the known signed message and signature produce an integer divisible by the missing public modulus. Distinct signed samples reveal a common factor; verification checks that the reconstructed key is correct. <strong>The device private key stays on the device.</strong> An equivalent reconstruction requires knowing the exact signature encoding and exponent. The original account describes SHA-256 signatures; newer v2 work introduces a SHA-384 recovery path, so those details are firmware/protocol-specific rather than universal. <a class="footref" href="#sources">[2, 6]</a></p>
@@ -220,8 +234,14 @@ Note: the app integration has a separate endpoint-redirection workflow.</div>
 <tr><td>Application commands</td><td>Roborock protocol semantics</td><td>Requires accurate REST and MQTT protocol emulation.</td></tr>
 <tr><td>Certificate pinning</td><td>Restricts acceptance to specific keys</td><td><span class="unknown">Model-dependent.</span> Could prevent this approach.</td></tr>
 </tbody></table></div>
-<blockquote class="insight">The certificate can be <em>perfectly valid</em> while the decision to trust its hostname is architecturally wrong.</blockquote>
-<div class="figure" role="group" aria-label="Certificate verification separates name selection and chain validation"><div class="fig-head">Figure 02 · Two independent questions</div><div class="flow"><div class="node"><div class="num">DECISION 1</div><b>Which hostname?</b><small>Provisioning and device configuration choose the service.</small></div><div class="node"><div class="num">DECISION 2</div><b>Whose certificate?</b><small>PKI validates that hostname and trusted issuer chain.</small></div><div class="node"><div class="num">DECISION 3</div><b>Which protocol?</b><small>Application-layer cryptography and behavior must still match.</small></div></div><div class="fig-caption">A successful TLS handshake proves neither vendor authorization nor compatibility with an application protocol.</div></div>
+<p>A crucial distinction is that <strong>a certificate can be valid for the hostname the device requested, even if the device was led to request a hostname its manufacturer never intended.</strong> The repository's pairing method changes the vacuum's configured destination to a domain the operator controls. The operator then presents a normal certificate for that domain. TLS correctly verifies the requested hostname and issuer; it has not been cryptographically bypassed.</p>
+<p>What TLS does not determine is whether provisioning was authorized to change the device's intended cloud server. That belongs to an earlier trust boundary: insufficiently constrained configuration data influences endpoint choice. This also explains why DNS-only redirection of the original Roborock hostname normally fails when the replacement certificate names another domain. The later eMudhra hypothesis instead keeps the <em>original</em> hostname and supplies a different accepted TLS identity for it. The figure below distinguishes those decisions without treating this argument as a quotation.</p>
+<figure class="figure mermaid-figure" aria-labelledby="fig-04-title">
+<figcaption id="fig-04-title" class="fig-head">Figure 04 · Three separate trust decisions</figcaption>
+<div class="diagram-frame"><img class="diagram-image" src="figures/04-trust-boundaries.svg" alt="Hostname selection occurs before TLS validation; application credentials and state are checked after TLS." loading="lazy" decoding="async"></div>
+<div class="diagram-actions"><span>↔ Pan for the full graph</span><a href="figures/04-trust-boundaries.svg" target="_blank" rel="noopener noreferrer">Open full-size SVG ↗</a></div>
+<figcaption class="fig-caption">Three separate decisions are visible: endpoint choice, certificate acceptance, and application-protocol acceptance. Success at one does not imply success at the next. <a class="diagram-source" href="figures/04-trust-boundaries.mmd" download>Mermaid source (.mmd)</a></figcaption>
+</figure>
 
 <h3>02.2 — Five separate gates to functional local-cloud control</h3>
 <p>TLS acceptance is only the second gate in a larger workflow. Treating it as a binary “can impersonate the cloud” result overstates what a CA compromise alone guarantees. <strong>All five conditions must be met</strong> for sustained operation.</p>
@@ -232,15 +252,13 @@ Note: the app integration has a separate endpoint-redirection workflow.</div>
 <div class="gate"><b>Authorization &amp; messaging</b><span>Compatible account/device credentials, REST state and MQTT routing are implemented.</span></div>
 <div class="gate"><b>Continuity</b><span>Reconnection, endpoint persistence, phone access and local-only operation remain viable.</span></div>
 </div>
-<div class="figure" role="group" aria-label="Routing, TLS, application and persistence gates">
-<div class="fig-head">Figure 05 · What each proposed route actually supplies</div>
-<div class="code-panel">                       GATE 1      GATE 2       GATES 3–4          GATE 5
-                    CONNECTION    TLS ID       APPLICATION         PERSIST
-Hostname injection   configured   own cert     emulator needed     usually configured
-Accepted CA route    network path accepted     emulator needed     path/config dependent
-
-Equal TLS acceptance at gate 2 does not imply equal device state at gate 3.</div>
-<div class="fig-caption">Framework adapted from the attached comparison. These are necessary-condition gates, not independently measured success probabilities.</div></div>
+<figure class="figure mermaid-figure" aria-labelledby="fig-05-title">
+<figcaption id="fig-05-title" class="fig-head">Figure 05 · Five gates to sustained operation</figcaption>
+<div class="diagram-frame"><img class="diagram-image" src="figures/05-five-gates.svg" alt="Both hostname injection and CA impersonation influence routing and TLS gates, but bootstrap, authorization, and persistence still need independent support." loading="lazy" decoding="async"></div>
+<div class="diagram-actions"><span>↔ Pan for the full graph</span><a href="figures/05-five-gates.svg" target="_blank" rel="noopener noreferrer">Open full-size SVG ↗</a></div>
+<figcaption class="fig-caption">Solid arrows show the required stages; dashed arrows show how each entry technique affects the first two. Neither technique alone solves the remaining stages. <a class="diagram-source" href="figures/05-five-gates.mmd" download>Mermaid source (.mmd)</a></figcaption>
+</figure>
+<p>For example, a replacement server may receive traffic and pass certificate validation (gates 1–2) but fail because the device sends account state or messages the emulator cannot interpret (gates 3–4). A freshly provisioned device might also register successfully but reconnect to a vendor destination after a restart if no persistent endpoint was established (gate 5). These are separate limitations even when the TLS session itself is perfectly valid.</p>
 <h3>02.3 — Independent application signatures would defeat both</h3>
 <p>Encrypting a bootstrap reply <em>to the vacuum</em> is different from producing a vendor-signed response <em>authenticated by the vacuum</em>. Recovery of the device's RSA public key permits the former, not necessarily the latter. If a firmware revision requires a vendor-controlled application signature, TLS-only impersonation and onboarding hostname injection cannot manufacture that signature. The same caveat applies to cloud account authorization and app-side session claims.</p>
 </section>
@@ -280,25 +298,20 @@ Equal TLS acceptance at gate 2 does not imply equal device state at gate 3.</div
 <h2>eMudhra changes the issuer, not the protocol</h2>
 <p class="lead">In October 2026, eight eMudhra intermediate CA private keys were reported compromised due to weak key generation. For unprotected clients that still trust an affected chain, a fraudulent certificate could authenticate a hostname the attacker does not own.</p>
 <div class="grid3"><div class="metric"><b>08</b><span>Intermediate CA private keys reported compromised</span></div><div class="metric"><b>17 Oct</b><span>2026 disclosure to browser root programs</span></div><div class="metric"><b>0</b><span>Evidence presented here that a Roborock model accepts such a chain</span></div></div>
-<div class="figure" role="group" aria-label="Certificate trust chain including a compromised intermediate authority"><div class="fig-head">Figure 03 · The public PKI failure mode</div>
-<div class="chain"><div><b>Trusted root CA</b><small>Installed in a client trust store</small></div><div class="arrow">↓ signs</div><div><b>Compromised eMudhra intermediate</b><small>Private signing key no longer exclusive</small></div><div class="arrow">↓ can issue</div><div><b>Fraudulent endpoint certificate</b><small>Subject Alternative Name can match an unrelated hostname</small></div><div class="arrow">↓ only if client still trusts chain</div><div><b>Unprotected HTTPS client</b><small>Subject to revocation, pinning and policy checks</small></div></div>
-<div class="fig-caption">A forged certificate does not automatically redirect traffic. A network-level redirection or interception capability is a separate prerequisite.</div></div>
+<figure class="figure mermaid-figure" aria-labelledby="fig-06-title">
+<figcaption id="fig-06-title" class="fig-head">Figure 06 · The CA trust chain and client acceptance</figcaption>
+<div class="diagram-frame"><img class="diagram-image" src="figures/06-ca-chain.svg" alt="A compromised CA signing key may authorize a replacement vendor-hostname certificate; client policy may still accept or reject its chain." loading="lazy" decoding="async"></div>
+<div class="diagram-actions"><span>↔ Pan for the full graph</span><a href="figures/06-ca-chain.svg" target="_blank" rel="noopener noreferrer">Open full-size SVG ↗</a></div>
+<figcaption class="fig-caption">Signing ability and verifier acceptance are distinct. The comparison explicitly assumes acceptance, without claiming that any particular Roborock firmware accepts this chain. <a class="diagram-source" href="figures/06-ca-chain.mmd" download>Mermaid source (.mmd)</a></figcaption>
+</figure>
 <div class="section-note"><span class="label">Comparison assumption</span><br><strong>For everything below, assume that a replacement certificate issued under an affected eMudhra intermediate is accepted by the target client's TLS verifier for the genuine Roborock hostname.</strong> This deliberately removes the PKI acceptance question from the architectural comparison. It does <em>not</em> assume network-path control, application authorization, pairing state, persistent endpoint changes, or model-specific compatibility. Outside this thought experiment, the issuer may be distrusted, absent from the device's trust store, rejected by revocation checks or disallowed by certificate pinning.</div>
 <h3>04.1 — Equivalent TLS, different claimed identity</h3>
-<div class="figure" role="group" aria-label="Different identities authenticated in successful TLS sessions">
-<div class="fig-head">Figure 06 · What the vacuum believes it authenticated</div>
-<div class="compare"><div><h4>A / Provisioning-based hostname replacement</h4><div class="code-panel">Device requests:
-  operator-controlled.example
-Presented cert:
-  operator-controlled.example
-Verdict:
-  ACCEPTED legitimate identity</div><p>Changes <em>which server the client chooses</em>. No CA compromise is necessary.</p></div><div><h4>B / CA-backed vendor identity impersonation</h4><div class="code-panel">Device requests:
-  vendor's existing Roborock origin
-Presented cert:
-  matching vendor origin
-Verdict (assumed):
-  ACCEPTED fraudulent identity</div><p>Changes <em>which key is accepted for the existing name</em>. No pairing-time hostname alteration is necessary at the TLS layer.</p></div></div>
-<div class="fig-caption">Both sessions can use ordinary encryption/decryption with keys held by the replacement server. Neither needs Roborock's original TLS private key.</div></div>
+<figure class="figure mermaid-figure" aria-labelledby="fig-07-title">
+<figcaption id="fig-07-title" class="fig-head">Figure 07 · Different TLS identities, shared protocol duties</figcaption>
+<div class="diagram-frame"><img class="diagram-image" src="figures/07-identity-comparison.svg" alt="Hostname injection authenticates an operator-controlled name; the assumed CA route authenticates an unchanged vendor hostname using a replacement key." loading="lazy" decoding="async"></div>
+<div class="diagram-actions"><span>↔ Pan for the full graph</span><a href="figures/07-identity-comparison.svg" target="_blank" rel="noopener noreferrer">Open full-size SVG ↗</a></div>
+<figcaption class="fig-caption">Both approaches can establish a valid encrypted TLS channel. They differ in which name was requested and how it was selected, not in whether Roborock's original TLS private key is needed. <a class="diagram-source" href="figures/07-identity-comparison.mmd" download>Mermaid source (.mmd)</a></figcaption>
+</figure>
 <h3>04.2 — Detailed capability-by-capability comparison</h3>
 <p>The outcomes below explicitly separate capability at TLS from actual end-to-end support. “eMudhra advantage” means an architectural possibility under the assumption above, <em>not</em> a demonstrated Roborock success rate.</p>
 <div class="tablewrap"><table class="wide"><thead><tr><th>Dimension</th><th>Hostname injection</th><th>eMudhra accepted TLS</th><th>Assessment</th></tr></thead><tbody>
@@ -327,16 +340,12 @@ Verdict (assumed):
 <p><strong>Other clients.</strong> Multiple HTTPS clients and origins could theoretically be affected if each separately accepts the chain and the relevant traffic is routed through a replacement server. The phone app, the vacuum and MQTT/TLS endpoints have different trust and authorization contexts. A CA compromise does not unify them.</p>
 <h3>04.4 — Where the documented provisioning approach remains stronger</h3>
 <p><strong>Durable redirection.</strong> The documented onboarding method establishes the operator's backend as the intended endpoint. Certificate impersonation of a vendor hostname, by itself, leaves the vacuum configured for that hostname. It can therefore depend on continuing DNS/path control unless the application accepts persistent alternative endpoints.</p>
-<div class="figure" role="group" aria-label="Persistence comparison">
-<div class="fig-head">Figure 07 · Persistence is not a property of the certificate</div>
-<div class="code-panel">PROVISIONING PATH
-  Accepted new endpoint → stored/advertised local cloud → normal local reconnect
-
-CA IMPERSONATION PATH
-  Existing vendor endpoint → accepted false TLS identity → replacement server
-                                                   ↘ continuing network redirect
-                                                   OR accepted new config (unproven)</div>
-<div class="fig-caption">Once both paths converge to the same stored local endpoints and application state, persistence differences can disappear. The CA method does not guarantee that convergence.</div></div>
+<figure class="figure mermaid-figure" aria-labelledby="fig-08-title">
+<figcaption id="fig-08-title" class="fig-head">Figure 08 · What persists after TLS succeeds</figcaption>
+<div class="diagram-frame"><img class="diagram-image" src="figures/08-persistence.svg" alt="Provisioning stores a local endpoint, while vendor-hostname certificate impersonation may require recurring network redirection unless the application stores a new destination." loading="lazy" decoding="async"></div>
+<div class="diagram-actions"><span>↔ Pan for the full graph</span><a href="figures/08-persistence.svg" target="_blank" rel="noopener noreferrer">Open full-size SVG ↗</a></div>
+<figcaption class="fig-caption">A certificate does not rewrite stored endpoints. Offline continuity therefore depends on the next connection destination, not simply on whether one TLS session succeeded. <a class="diagram-source" href="figures/08-persistence.mmd" download>Mermaid source (.mmd)</a></figcaption>
+</figure>
 <p><strong>Maintainability and proven behavior.</strong> The legitimate own-domain route avoids reliance on compromised keys, inconsistent embedded trust stores and emergency distrust rollouts. It is also the route the repository implements, documents and tests. That evidence makes it a stronger <em>practical deployment choice</em>, notwithstanding the CA route's broader theoretical TLS identity capability.</p>
 <h3>04.5 — Scenario matrix under the accepted-certificate assumption</h3>
 <div class="tablewrap"><table><thead><tr><th>Starting scenario</th><th>Hostname injection</th><th>Accepted eMudhra identity</th></tr></thead><tbody>
@@ -380,7 +389,7 @@ CA IMPERSONATION PATH
 </ol><p class="mini">Comparison provenance: the separate accepted-eMudhra-certificate assumption and detailed scenario/method matrices come from a user-supplied technical discussion and are presented as architectural inference, not measured product behavior.</p><p class="mini">Scope: explanatory security analysis only. No key material, fraudulent certificates, or interception tooling are provided. Local-service support and trust-store exposure must be established separately for each model and firmware.</p>
 </section>
 </main></div>
-<footer><div><div class="footline"></div>FIELD / NOTES — Independent systems research<br>Illustrated technical explainer · v1.0</div><div>21 OCTOBER 2026 &nbsp; / &nbsp; BUILT FOR THE ARTIFACT LAB</div></footer>
+<footer><div><div class="footline"></div>FIELD / NOTES — Independent systems research<br>Mermaid-authored protocol analysis · v1.2</div><div>21 OCTOBER 2026 &nbsp; / &nbsp; BUILT FOR THE ARTIFACT LAB</div></footer>
 <script>
 (() => {
  const progress = document.querySelector('#reading-progress');

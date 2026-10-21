@@ -1,0 +1,11 @@
+flowchart TB
+  subgraph Inject["A. Provisioning-based hostname injection"]
+    direction LR
+    A["Client requests<br/>operator domain"] --> B["Legitimate cert<br/>for operator domain"] --> C["TLS succeeds"]
+  end
+  subgraph CA["B. CA-backed impersonation — acceptance assumed"]
+    direction LR
+    D["Client requests<br/>original vendor name"] --> E["Fraudulently issued cert<br/>for vendor name"] --> F["TLS succeeds"]
+  end
+  C -.-> P["Both still require<br/>application-protocol compatibility"]
+  F -.-> P

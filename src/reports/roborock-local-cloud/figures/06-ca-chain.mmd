@@ -1,0 +1,8 @@
+flowchart LR
+  Root["Trusted root CA<br/>present in client trust store"] -->|"signs or chains to"| Intermediate["eMudhra intermediate<br/>whose private key is compromised"]
+  Intermediate -->|"fraudulent issuance possible"| Leaf["Replacement TLS certificate<br/>names vendor hostname"]
+  Leaf --> Check{"Client accepts chain,<br/>name, revocation and pin policy?"}
+  Check -- "yes, by assumption" --> Pass["TLS identity accepted"]
+  Check -- "no" --> Fail["TLS fails"]
+  classDef rejected fill:#402d2d,stroke:#bd877e,color:#f7e8e7
+  class Fail rejected

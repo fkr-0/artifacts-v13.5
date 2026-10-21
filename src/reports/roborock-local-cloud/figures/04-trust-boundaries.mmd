@@ -1,0 +1,10 @@
+flowchart LR
+  P["Provisioning/configuration<br/>selects the hostname"] --> N["Vacuum requests<br/>that hostname"]
+  N --> T{"TLS certificate matches hostname<br/>and trusted policy?"}
+  T -- "yes" --> E["Authenticated TLS channel"]
+  T -- "no" --> R["TLS handshake fails"]
+  E --> A{"Application messages,<br/>state and credentials valid?"}
+  A -- "yes" --> L["Service can operate"]
+  A -- "no" --> Q["Registration / commands rejected"]
+  classDef rejected fill:#402d2d,stroke:#bd877e,color:#f7e8e7
+  class R,Q rejected

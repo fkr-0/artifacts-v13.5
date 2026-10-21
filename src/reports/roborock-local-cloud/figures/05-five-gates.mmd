@@ -1,0 +1,9 @@
+flowchart LR
+  G1["Gate 1: route<br/>reaches replacement"] --> G2["Gate 2: TLS identity<br/>accepted by client"]
+  G2 --> G3["Gate 3: bootstrap<br/>response accepted"]
+  G3 --> G4["Gate 4: authorization<br/>and messaging"]
+  G4 --> G5["Gate 5: reconnection<br/>and persistence"]
+  H["Hostname injection"] -.->|"configures destination"| G1
+  H -.->|"legitimate own-name cert"| G2
+  C["CA route (hypothesis)"] -.->|"needs traffic redirection"| G1
+  C -.->|"accepted vendor-name cert"| G2

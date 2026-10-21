@@ -1,0 +1,7 @@
+flowchart LR
+  A["An authenticated TLS session<br/>has been established"] --> B{"Where will the device<br/>connect next time?"}
+  B -- "Pairing stored local endpoint" --> C["Later connection<br/>targets local service"]
+  B -- "Original vendor name unchanged" --> D["Later connection<br/>targets vendor name"]
+  D --> E{"Application accepted a<br/>persistent endpoint update?"}
+  E -- "yes" --> C
+  E -- "no" --> F["Continuing network redirection<br/>needed for local operation"]

@@ -1,0 +1,16 @@
+sequenceDiagram
+  autonumber
+  participant Phone as Phone / pairing tool
+  participant Vac as Vacuum
+  participant Web as Local HTTPS
+  participant MQ as Local MQTT
+  Phone->>Vac: Pair on device Wi-Fi / session-key exchange
+  Phone->>Vac: Encrypted Wi-Fi + regional configuration
+  Vac->>Web: TLS to configured hostname
+  Web-->>Vac: Certificate matches requested hostname
+  Vac->>Web: Signed region / bootstrap request
+  Note over Vac,Web: Vacuum keeps its own RSA private key
+  Web-->>Vac: Response encrypted for vacuum RSA public key
+  Vac->>MQ: MQTT/TLS connect with configured credentials
+  MQ-->>Vac: Commands / responses / events
+  Note over Phone,MQ: Fresh pairing only. Already-paired devices may skip these stages

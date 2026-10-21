@@ -1,0 +1,13 @@
+flowchart TB
+  Phone["Phone app / pairing tool"]
+  Vacuum["Roborock vacuum"]
+  API["Local HTTPS service<br/>registration + API metadata"]
+  Broker["Local MQTT broker<br/>commands + device events"]
+  Ctrl["Local controller / automation"]
+  Phone -->|"pairing: Wi-Fi and endpoint config"| Vacuum
+  Phone <-->|"local TCP: supported direct features"| Vacuum
+  Vacuum -->|"HTTPS: bootstrap request"| API
+  API -->|"encrypted service configuration"| Vacuum
+  Vacuum <-->|"MQTT over TLS: events and commands"| Broker
+  Ctrl <-->|"state + command routing"| Broker
+  Phone -.->|"app integration: separate redirect/setup"| API

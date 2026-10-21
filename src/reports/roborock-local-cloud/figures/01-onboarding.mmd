@@ -1,0 +1,9 @@
+flowchart LR
+  A["Vacuum enters pairing mode"] --> B["Pairing tool sends Wi-Fi<br/>and regional configuration"]
+  B --> C["Vacuum constructs its<br/>cloud endpoint hostname"]
+  C --> D{"TLS name and issuer<br/>accepted?"}
+  D -- "yes" --> E["Encrypted bootstrap<br/>registration"]
+  E --> F["Ongoing MQTT/TLS<br/>messages and commands"]
+  D -- "no" --> X["Connection rejected"]
+  classDef reject fill:#402d2d,stroke:#bd877e,color:#f7e8e7
+  class X reject

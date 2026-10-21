@@ -4,10 +4,10 @@
     {
       "id": "roborock-local-cloud",
       "title": "Roborock Local Cloud: TLS and CA Trust",
-      "description": "Technical field report comparing Roborock hostname injection and eMudhra CA-based TLS impersonation: cryptographic key roles, onboarding, five protocol gates, current firmware limits, 17-dimension capability matrix and scenario outcomes under an explicit certificate-acceptance assumption.",
+      "description": "Roborock local-cloud security analysis with eight Mermaid-rendered figures: provisioning, HTTPS/MQTT/local TCP relationships, pairing sequence, trust boundaries, five operational gates, CA issuance, TLS identities and persistence. Includes certificate-acceptance assumptions and comparative matrices.",
       "source": "src/reports/roborock-local-cloud/index.html",
       "route": "research/roborock-local-cloud/index.html",
-      "version": "1.1.0",
+      "version": "1.2.0",
       "changedAt": "2026-10-21T00:00:00.000Z",
       "tags": [
         "research",
@@ -18,6 +18,24 @@
         "embedded",
         "iot",
         "technical-writing"
+      ],
+      "assets": [
+        "figures/01-onboarding.svg",
+        "figures/01-onboarding.mmd",
+        "figures/02-service-channels.svg",
+        "figures/02-service-channels.mmd",
+        "figures/03-registration-sequence.svg",
+        "figures/03-registration-sequence.mmd",
+        "figures/04-trust-boundaries.svg",
+        "figures/04-trust-boundaries.mmd",
+        "figures/05-five-gates.svg",
+        "figures/05-five-gates.mmd",
+        "figures/06-ca-chain.svg",
+        "figures/06-ca-chain.mmd",
+        "figures/07-identity-comparison.svg",
+        "figures/07-identity-comparison.mmd",
+        "figures/08-persistence.svg",
+        "figures/08-persistence.mmd"
       ]
     }
   ]
