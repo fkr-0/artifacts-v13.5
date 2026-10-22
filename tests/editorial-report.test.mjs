@@ -47,6 +47,8 @@ test('Roborock field report has a stable, uniquely cataloged release route', asy
   assert.ok((html.match(/<tr>/g) || []).length >= 60, 'rich comparative tables');
   assert.equal((html.match(/class="figure mermaid-figure"/g) || []).length, 8, 'all eight figures use locally rendered Mermaid');
   assert.equal((html.match(/Open full-size SVG/g) || []).length, 8, 'all diagrams offer an accessible full-size view');
+  assert.equal((html.match(/class="diagram-image"[^>]+width="[0-9]+" height="[0-9]+"/g) || []).length, 8,
+    'diagram dimensions reserve layout space for correct anchor jumps on mobile');
   assert.doesNotMatch(html, /<div class="code-panel">/, 'ASCII flows are replaced by diagrams');
   assert.doesNotMatch(html, /<blockquote class="insight">/, 'the article thesis is prose, not a false quotation');
   assert.match(html, /01\.3 — Emulating a service, not just a TLS endpoint/);
@@ -55,7 +57,14 @@ test('Roborock field report has a stable, uniquely cataloged release route', asy
   assert.match(html, /local TCP/);
   assert.match(html, /A crucial distinction is that/);
   assert.match(html, /Mermaid source \(\.mmd\)/);
-  assert.equal(report.version, '1.2.0');
+  assert.equal(report.version, '1.2.1');
+  assert.match(html, /<details class="mobile-toc">/);
+  assert.match(html, /<nav class="mobile-toc-panel" aria-label="Mobile contents">/);
+  assert.match(html, /\.article-grid>\.toc\{display:none\}/);
+  assert.match(html, /if\(menu\?\.open && !menu\.contains\(event\.target\)\) closeMenu\(\)/);
+  assert.match(html, /event\.key === 'Escape'/);
+  assert.match(html, /menu\?\.querySelectorAll\('nav a'\)/);
+  assert.match(html, /\.toc a, \.mobile-toc-panel a/);
   assert.equal(report.assets.length, 16);
   for (const asset of report.assets) {
     assert.match(asset, /^figures\/\d\d-[a-z-]+\.(?:mmd|svg)$/);

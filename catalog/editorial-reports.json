@@ -7,8 +7,8 @@
       "description": "Roborock local-cloud security analysis with eight Mermaid-rendered figures: provisioning, HTTPS/MQTT/local TCP relationships, pairing sequence, trust boundaries, five operational gates, CA issuance, TLS identities and persistence. Includes certificate-acceptance assumptions and comparative matrices.",
       "source": "src/reports/roborock-local-cloud/index.html",
       "route": "research/roborock-local-cloud/index.html",
-      "version": "1.2.0",
-      "changedAt": "2026-10-21T00:00:00.000Z",
+      "version": "1.2.1",
+      "changedAt": "2026-10-21T23:00:00.000Z",
       "tags": [
         "research",
         "security",

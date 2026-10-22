@@ -134,11 +134,46 @@ table.wide{min-width:800px}
 .diagram-actions{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px;color:var(--muted);font:600 10px/1.5 ui-monospace,Consolas,monospace;margin:4px 0 7px}
 .diagram-actions a{color:var(--mint)}
 @media print{.diagram-actions{display:none}}
+
+/* Mobile contents are a disclosure in the sticky top bar, not an intro block. */
+.mobile-toc{display:none;position:relative}
+.mobile-toc summary{list-style:none;cursor:pointer;user-select:none;display:flex;align-items:center;gap:9px;padding:7px 10px;min-height:38px;border:1px solid var(--border);font:650 11px/1.4 ui-monospace,Consolas,monospace;letter-spacing:.025em;color:var(--fg);background:var(--surface)}
+.mobile-toc summary::-webkit-details-marker{display:none}
+.mobile-toc summary::after{content:"▾";color:var(--accent);font-size:14px;margin-left:3px}
+.mobile-toc[open] summary::after{content:"▴"}
+.mobile-toc summary:hover,.mobile-toc[open] summary{background:var(--raised);border-color:#69807b}
+.mobile-toc .menu-icon{font-size:16px;font-weight:500;line-height:1;color:var(--mint)}
+.mobile-toc .current-section{color:var(--accent);font-size:10px;min-width:16px;text-align:center}
+.mobile-toc-panel{position:absolute;z-index:31;right:0;top:calc(100% + 6px);width:min(338px,calc(100vw - 30px));max-height:min(460px,calc(100dvh - 66px));overflow-y:auto;padding:10px 13px 13px;background:#1b2628;border:1px solid #556b68;box-shadow:0 15px 45px #0009}
+.mobile-toc-label{padding:6px 7px 8px;color:var(--accent);font:700 10px ui-monospace,Consolas,monospace;letter-spacing:.09em;text-transform:uppercase}
+.mobile-toc-panel a{display:flex;align-items:baseline;gap:12px;text-decoration:none;color:var(--fg);border-top:1px solid #354748;padding:12px 9px;font-size:13px;line-height:1.35}
+.mobile-toc-panel a span{color:var(--accent);font:700 11px ui-monospace,Consolas,monospace;min-width:23px}
+.mobile-toc-panel a:hover,.mobile-toc-panel a.active{background:#283637;color:var(--mint)}
+.mobile-toc-panel a[aria-current="location"]{border-left:2px solid var(--accent);padding-left:7px}
+@media(max-width:870px){
+  .topmeta{display:none}
+  .mobile-toc{display:block}
+  .article-grid>.toc{display:none}
+  .article-grid>main{display:block}
+  .report-header{padding-top:19px}
+}
+@media print{.mobile-toc{display:none!important}}
 </style>
 </head>
 <body>
 <a class="skip" href="#content">Skip to report</a><div class="progress" aria-hidden="true" id="reading-progress"></div>
-<header class="top"><div class="topin"><a class="brand" href="#top">FIELD<span> / </span>NOTES</a><div class="topmeta">SYSTEMS · PKI · LOCAL-FIRST ENGINEERING &nbsp; / &nbsp; 2026.10</div></div></header>
+<header class="top"><div class="topin"><a class="brand" href="#top">FIELD<span> / </span>NOTES</a><div class="topmeta">SYSTEMS · PKI · LOCAL-FIRST ENGINEERING &nbsp; / &nbsp; 2026.10</div>
+<details class="mobile-toc">
+<summary><span class="menu-icon" aria-hidden="true">☰</span><span>Contents</span><span class="current-section" aria-label="Current chapter">—</span></summary>
+<nav class="mobile-toc-panel" aria-label="Mobile contents">
+<div class="mobile-toc-label">Jump to section</div>
+<a href="#mechanism"><span>01</span> How the repository works</a>
+<a href="#boundaries"><span>02</span> The trust boundaries</a>
+<a href="#firmware"><span>03</span> Modern firmware limits</a>
+<a href="#emudhra"><span>04</span> The eMudhra question</a>
+<a href="#sources"><span>↗</span> Sources &amp; notes</a>
+</nav>
+</details></div></header>
 
 <div class="wrap article-grid"><aside class="toc" aria-label="Table of contents">
 <div class="toc-label">Contents</div>
@@ -154,7 +189,7 @@ table.wide{min-width:800px}
 <div class="eyebrow">Research note / 2026-10-21 / TLS, PKI &amp; IoT</div>
 <h1>Roborock local-cloud authentication and the eMudhra CA incident</h1>
 <p class="dek">Comparing hostname injection with accepted certificate-based vendor impersonation: key boundaries, onboarding, firmware differences, persistent operation and a conditional 17-dimension capability matrix.</p>
-<div class="herofoot"><span class="tag">PROTOCOL ANALYSIS</span><span>4 chapters · diagrams &amp; matrices</span><span>Revision 1.2</span></div>
+<div class="herofoot"><span class="tag">PROTOCOL ANALYSIS</span><span>4 chapters · diagrams &amp; matrices</span><span>Revision 1.2.1</span></div>
 </header>
 <section class="section" id="mechanism">
 <div class="chapter">01 / Mechanics</div>
@@ -162,7 +197,7 @@ table.wide{min-width:800px}
 <p class="lead">The project replaces Roborock's cloud-facing control plane with a local HTTPS and MQTT implementation. Its key achievement is to make the vacuum <strong>choose the local server's hostname</strong> before ordinary TLS authentication begins.</p>
 <figure class="figure mermaid-figure" aria-labelledby="fig-01-title">
 <figcaption id="fig-01-title" class="fig-head">Figure 01 · From pairing to operating a local cloud</figcaption>
-<div class="diagram-frame"><img class="diagram-image" src="figures/01-onboarding.svg" alt="Pairing leads to a configured TLS endpoint, encrypted registration and MQTT operation." loading="lazy" decoding="async"></div>
+<div class="diagram-frame"><img class="diagram-image" src="figures/01-onboarding.svg" width="1567" height="221" alt="Pairing leads to a configured TLS endpoint, encrypted registration and MQTT operation." loading="lazy" decoding="async"></div>
 <div class="diagram-actions"><span>↔ Pan for the full graph</span><a href="figures/01-onboarding.svg" target="_blank" rel="noopener noreferrer">Open full-size SVG ↗</a></div>
 <figcaption class="fig-caption">Follow the arrows from pairing to ongoing control. The certificate-validation fork explains why redirecting packets to a LAN IP without an accepted certificate is not enough. <a class="diagram-source" href="figures/01-onboarding.mmd" download>Mermaid source (.mmd)</a></figcaption>
 </figure>
@@ -182,7 +217,7 @@ table.wide{min-width:800px}
 <p>These three communication paths have different jobs and are not interchangeable. <strong>HTTPS</strong> is the registration and service-configuration path; <strong>MQTT over TLS</strong> is the ongoing command-and-event channel; and <strong>local TCP</strong> supports direct device-facing features where available. “LAN” describes where packets travel, not a third application protocol. TLS acceptance by the vacuum does not automatically configure or authenticate the phone app or controller.</p>
 <figure class="figure mermaid-figure" aria-labelledby="fig-02-title">
 <figcaption id="fig-02-title" class="fig-head">Figure 02 · Client and service relationships</figcaption>
-<div class="diagram-frame"><img class="diagram-image" src="figures/02-service-channels.svg" alt="Diagram linking phone, vacuum, HTTPS bootstrap service, MQTT broker and controller, with labelled pairing configuration, direct TCP features, bootstrap requests, credentials, commands and events." loading="lazy" decoding="async"></div>
+<div class="diagram-frame"><img class="diagram-image" src="figures/02-service-channels.svg" width="918" height="370" alt="Diagram linking phone, vacuum, HTTPS bootstrap service, MQTT broker and controller, with labelled pairing configuration, direct TCP features, bootstrap requests, credentials, commands and events." loading="lazy" decoding="async"></div>
 <div class="diagram-actions"><span>↔ Pan for the full graph</span><a href="figures/02-service-channels.svg" target="_blank" rel="noopener noreferrer">Open full-size SVG ↗</a></div>
 <figcaption class="fig-caption">Each arrow identifies <em>the participants</em>, <em>the transport</em> and <em>the purpose</em> of an exchange. Pairing supplies endpoint configuration, HTTPS handles registration, and MQTT relays operational commands and events. The dashed phone-to-API link represents additional phone-app integration rather than a connection created by TLS validation. <a class="diagram-source" href="figures/02-service-channels.mmd" download>Mermaid source (.mmd)</a></figcaption>
 </figure>
@@ -192,7 +227,7 @@ table.wide{min-width:800px}
 <p>Figure 02 describes the system's connections; this sequence adds their <strong>ordering during one fresh pairing</strong>. Configuration supplies the Wi-Fi and region information, the vacuum chooses its HTTPS destination, and the encrypted registration response supplies the material required for later MQTT operation. These messages cross distinct cryptographic boundaries, not one undifferentiated “authenticated Roborock connection.” <a class="footref" href="#sources">[1–2]</a></p>
 <figure class="figure mermaid-figure" aria-labelledby="fig-03-title">
 <figcaption id="fig-03-title" class="fig-head">Figure 03 · Fresh onboarding as a message sequence</figcaption>
-<div class="diagram-frame"><img class="diagram-image" src="figures/03-registration-sequence.svg" alt="The pairing tool provisions Wi-Fi and region values; the vacuum contacts local HTTPS for registration and later connects to a local MQTT broker." loading="lazy" decoding="async"></div>
+<div class="diagram-frame"><img class="diagram-image" src="figures/03-registration-sequence.svg" width="1212" height="567" alt="The pairing tool provisions Wi-Fi and region values; the vacuum contacts local HTTPS for registration and later connects to a local MQTT broker." loading="lazy" decoding="async"></div>
 <div class="diagram-actions"><span>↔ Pan for the full graph</span><a href="figures/03-registration-sequence.svg" target="_blank" rel="noopener noreferrer">Open full-size SVG ↗</a></div>
 <figcaption class="fig-caption">Message order matters: HTTPS bootstraps service configuration while MQTT carries later commands. An already-paired device may not repeat the registration exchanges shown here. <a class="diagram-source" href="figures/03-registration-sequence.mmd" download>Mermaid source (.mmd)</a></figcaption>
 </figure>
@@ -238,7 +273,7 @@ table.wide{min-width:800px}
 <p>What TLS does not determine is whether provisioning was authorized to change the device's intended cloud server. That belongs to an earlier trust boundary: insufficiently constrained configuration data influences endpoint choice. This also explains why DNS-only redirection of the original Roborock hostname normally fails when the replacement certificate names another domain. The later eMudhra hypothesis instead keeps the <em>original</em> hostname and supplies a different accepted TLS identity for it. The figure below distinguishes those decisions without treating this argument as a quotation.</p>
 <figure class="figure mermaid-figure" aria-labelledby="fig-04-title">
 <figcaption id="fig-04-title" class="fig-head">Figure 04 · Three separate trust decisions</figcaption>
-<div class="diagram-frame"><img class="diagram-image" src="figures/04-trust-boundaries.svg" alt="Hostname selection occurs before TLS validation; application credentials and state are checked after TLS." loading="lazy" decoding="async"></div>
+<div class="diagram-frame"><img class="diagram-image" src="figures/04-trust-boundaries.svg" width="1710" height="325" alt="Hostname selection occurs before TLS validation; application credentials and state are checked after TLS." loading="lazy" decoding="async"></div>
 <div class="diagram-actions"><span>↔ Pan for the full graph</span><a href="figures/04-trust-boundaries.svg" target="_blank" rel="noopener noreferrer">Open full-size SVG ↗</a></div>
 <figcaption class="fig-caption">Three separate decisions are visible: endpoint choice, certificate acceptance, and application-protocol acceptance. Success at one does not imply success at the next. <a class="diagram-source" href="figures/04-trust-boundaries.mmd" download>Mermaid source (.mmd)</a></figcaption>
 </figure>
@@ -254,7 +289,7 @@ table.wide{min-width:800px}
 </div>
 <figure class="figure mermaid-figure" aria-labelledby="fig-05-title">
 <figcaption id="fig-05-title" class="fig-head">Figure 05 · Five gates to sustained operation</figcaption>
-<div class="diagram-frame"><img class="diagram-image" src="figures/05-five-gates.svg" alt="Both hostname injection and CA impersonation influence routing and TLS gates, but bootstrap, authorization, and persistence still need independent support." loading="lazy" decoding="async"></div>
+<div class="diagram-frame"><img class="diagram-image" src="figures/05-five-gates.svg" width="1528" height="218" alt="Both hostname injection and CA impersonation influence routing and TLS gates, but bootstrap, authorization, and persistence still need independent support." loading="lazy" decoding="async"></div>
 <div class="diagram-actions"><span>↔ Pan for the full graph</span><a href="figures/05-five-gates.svg" target="_blank" rel="noopener noreferrer">Open full-size SVG ↗</a></div>
 <figcaption class="fig-caption">Solid arrows show the required stages; dashed arrows show how each entry technique affects the first two. Neither technique alone solves the remaining stages. <a class="diagram-source" href="figures/05-five-gates.mmd" download>Mermaid source (.mmd)</a></figcaption>
 </figure>
@@ -300,7 +335,7 @@ table.wide{min-width:800px}
 <div class="grid3"><div class="metric"><b>08</b><span>Intermediate CA private keys reported compromised</span></div><div class="metric"><b>17 Oct</b><span>2026 disclosure to browser root programs</span></div><div class="metric"><b>0</b><span>Evidence presented here that a Roborock model accepts such a chain</span></div></div>
 <figure class="figure mermaid-figure" aria-labelledby="fig-06-title">
 <figcaption id="fig-06-title" class="fig-head">Figure 06 · The CA trust chain and client acceptance</figcaption>
-<div class="diagram-frame"><img class="diagram-image" src="figures/06-ca-chain.svg" alt="A compromised CA signing key may authorize a replacement vendor-hostname certificate; client policy may still accept or reject its chain." loading="lazy" decoding="async"></div>
+<div class="diagram-frame"><img class="diagram-image" src="figures/06-ca-chain.svg" width="1821" height="309" alt="A compromised CA signing key may authorize a replacement vendor-hostname certificate; client policy may still accept or reject its chain." loading="lazy" decoding="async"></div>
 <div class="diagram-actions"><span>↔ Pan for the full graph</span><a href="figures/06-ca-chain.svg" target="_blank" rel="noopener noreferrer">Open full-size SVG ↗</a></div>
 <figcaption class="fig-caption">Signing ability and verifier acceptance are distinct. The comparison explicitly assumes acceptance, without claiming that any particular Roborock firmware accepts this chain. <a class="diagram-source" href="figures/06-ca-chain.mmd" download>Mermaid source (.mmd)</a></figcaption>
 </figure>
@@ -308,7 +343,7 @@ table.wide{min-width:800px}
 <h3>04.1 — Equivalent TLS, different claimed identity</h3>
 <figure class="figure mermaid-figure" aria-labelledby="fig-07-title">
 <figcaption id="fig-07-title" class="fig-head">Figure 07 · Different TLS identities, shared protocol duties</figcaption>
-<div class="diagram-frame"><img class="diagram-image" src="figures/07-identity-comparison.svg" alt="Hostname injection authenticates an operator-controlled name; the assumed CA route authenticates an unchanged vendor hostname using a replacement key." loading="lazy" decoding="async"></div>
+<div class="diagram-frame"><img class="diagram-image" src="figures/07-identity-comparison.svg" width="531" height="496" alt="Hostname injection authenticates an operator-controlled name; the assumed CA route authenticates an unchanged vendor hostname using a replacement key." loading="lazy" decoding="async"></div>
 <div class="diagram-actions"><span>↔ Pan for the full graph</span><a href="figures/07-identity-comparison.svg" target="_blank" rel="noopener noreferrer">Open full-size SVG ↗</a></div>
 <figcaption class="fig-caption">Both approaches can establish a valid encrypted TLS channel. They differ in which name was requested and how it was selected, not in whether Roborock's original TLS private key is needed. <a class="diagram-source" href="figures/07-identity-comparison.mmd" download>Mermaid source (.mmd)</a></figcaption>
 </figure>
@@ -342,7 +377,7 @@ table.wide{min-width:800px}
 <p><strong>Durable redirection.</strong> The documented onboarding method establishes the operator's backend as the intended endpoint. Certificate impersonation of a vendor hostname, by itself, leaves the vacuum configured for that hostname. It can therefore depend on continuing DNS/path control unless the application accepts persistent alternative endpoints.</p>
 <figure class="figure mermaid-figure" aria-labelledby="fig-08-title">
 <figcaption id="fig-08-title" class="fig-head">Figure 08 · What persists after TLS succeeds</figcaption>
-<div class="diagram-frame"><img class="diagram-image" src="figures/08-persistence.svg" alt="Provisioning stores a local endpoint, while vendor-hostname certificate impersonation may require recurring network redirection unless the application stores a new destination." loading="lazy" decoding="async"></div>
+<div class="diagram-frame"><img class="diagram-image" src="figures/08-persistence.svg" width="1739" height="315" alt="Provisioning stores a local endpoint, while vendor-hostname certificate impersonation may require recurring network redirection unless the application stores a new destination." loading="lazy" decoding="async"></div>
 <div class="diagram-actions"><span>↔ Pan for the full graph</span><a href="figures/08-persistence.svg" target="_blank" rel="noopener noreferrer">Open full-size SVG ↗</a></div>
 <figcaption class="fig-caption">A certificate does not rewrite stored endpoints. Offline continuity therefore depends on the next connection destination, not simply on whether one TLS session succeeded. <a class="diagram-source" href="figures/08-persistence.mmd" download>Mermaid source (.mmd)</a></figcaption>
 </figure>
@@ -389,22 +424,42 @@ table.wide{min-width:800px}
 </ol><p class="mini">Comparison provenance: the separate accepted-eMudhra-certificate assumption and detailed scenario/method matrices come from a user-supplied technical discussion and are presented as architectural inference, not measured product behavior.</p><p class="mini">Scope: explanatory security analysis only. No key material, fraudulent certificates, or interception tooling are provided. Local-service support and trust-store exposure must be established separately for each model and firmware.</p>
 </section>
 </main></div>
-<footer><div><div class="footline"></div>FIELD / NOTES — Independent systems research<br>Mermaid-authored protocol analysis · v1.2</div><div>21 OCTOBER 2026 &nbsp; / &nbsp; BUILT FOR THE ARTIFACT LAB</div></footer>
+<footer><div><div class="footline"></div>FIELD / NOTES — Independent systems research<br>Mermaid-authored protocol analysis · v1.2.1</div><div>21 OCTOBER 2026 &nbsp; / &nbsp; BUILT FOR THE ARTIFACT LAB</div></footer>
 <script>
 (() => {
  const progress = document.querySelector('#reading-progress');
  const headings = [...document.querySelectorAll('main section[id]')];
- const links = [...document.querySelectorAll('.toc a')];
+ const links = [...document.querySelectorAll('.toc a, .mobile-toc-panel a')];
+ const menu = document.querySelector('.mobile-toc');
+ const menuCurrent = document.querySelector('.current-section');
+ const sectionNums = {mechanism:'01',boundaries:'02',firmware:'03',emudhra:'04',sources:'↗'};
+ const closeMenu = () => { if(menu?.open) menu.open = false; };
+ menu?.querySelectorAll('nav a').forEach(link => link.addEventListener('click', closeMenu));
+ document.addEventListener('pointerdown', event => {
+   if(menu?.open && !menu.contains(event.target)) closeMenu();
+ });
+ document.addEventListener('keydown', event => {
+   if(event.key === 'Escape' && menu?.open){
+     closeMenu();
+     menu.querySelector('summary').focus();
+   }
+ });
  let scheduled = false;
  const update = () => {
    scheduled = false;
    const max = Math.max(1, document.documentElement.scrollHeight - innerHeight);
    progress.style.width = Math.min(100, Math.max(0, scrollY/max*100)).toFixed(1)+'%';
    const current = headings.filter(s => s.getBoundingClientRect().top <= 170).at(-1)?.id;
+   if(menuCurrent) menuCurrent.textContent = sectionNums[current] || '—';
    for(const link of links){const active = link.hash.slice(1) === current;link.classList.toggle('active', active);if(active)link.setAttribute('aria-current','location');else link.removeAttribute('aria-current')}
  };
  addEventListener('scroll',()=>{if(!scheduled){scheduled=true;requestAnimationFrame(update)}},{passive:true});
- addEventListener('resize',update); update();
+ addEventListener('resize', () => {
+   if(innerWidth > 870) closeMenu();
+   update();
+ });
+ addEventListener('hashchange', update);
+ update();
 })();
 </script>
 </body>
